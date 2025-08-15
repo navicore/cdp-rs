@@ -1,0 +1,25 @@
+# CDP-RS Clippy Configuration
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Maximum number of single char bindings in a scope
+single-char-binding-names-threshold = 4
+
+# Maximum number of lines for functions
+too-many-lines-threshold = 100
+
+# Maximum number of arguments
+too-many-arguments-threshold = 7
+
+# Type complexity threshold
+type-complexity-threshold = 250
+
+# Avoid breaking changes
+avoid-breaking-exported-api = true
+
+# Maximum struct size for passing by value (in bytes)
+trivial-copy-size-limit = 16
+
+# Enforce MSRV
+msrv = "1.70.0"

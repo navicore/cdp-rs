@@ -1,19 +1,37 @@
 # Rust build artifacts
 /target/
 **/*.rs.bk
+*.pdb
 *.log
 
-# IDE files
+# Cargo
+Cargo.lock
+
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Cargo lock for libraries
-# Cargo.lock
-EOF < /dev/null
+# Test outputs
+*.wav
+*.ana
+*.pvx
+/temp/
+/tmp/
+
+# Coverage
+*.profraw
+*.profdata
+/coverage/
+
+# Documentation
+/docs/
+
+# CDP binaries (for testing)
+/cdp-bin/
