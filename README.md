@@ -1,5 +1,11 @@
 # cdp-rs
 
+# UNDER CONSTRUCTION
+
+# UNDER CONSTRUCTION
+
+# UNDER CONSTRUCTION
+
 A faithful Rust port of the Composers Desktop Project (CDP) - preserving 35+ years of spectral processing excellence.
 
 ## Vision
