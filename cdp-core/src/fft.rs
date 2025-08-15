@@ -3,6 +3,7 @@ use num_complex::Complex32;
 use rustfft::{Fft as RustFft, FftPlanner};
 use std::sync::Arc;
 
+/// FFT processor for spectral analysis and synthesis
 pub struct FftProcessor {
     size: usize,
     forward: Arc<dyn RustFft<f32>>,
@@ -11,6 +12,7 @@ pub struct FftProcessor {
 }
 
 impl FftProcessor {
+    /// Create a new FFT processor with the specified size (must be power of 2)
     pub fn new(size: usize) -> Result<Self> {
         if !size.is_power_of_two() {
             return Err(CoreError::InvalidFftSize(size));
@@ -28,6 +30,7 @@ impl FftProcessor {
         })
     }
 
+    /// Perform forward FFT on real input data
     pub fn forward(&mut self, input: &[f32], output: &mut [Complex32]) -> Result<()> {
         if input.len() != self.size || output.len() != self.size {
             return Err(CoreError::InvalidFftSize(input.len()));
@@ -42,6 +45,7 @@ impl FftProcessor {
         Ok(())
     }
 
+    /// Perform inverse FFT and convert to real output
     pub fn inverse(&mut self, input: &mut [Complex32], output: &mut [f32]) -> Result<()> {
         if input.len() != self.size || output.len() != self.size {
             return Err(CoreError::InvalidFftSize(input.len()));
@@ -58,11 +62,13 @@ impl FftProcessor {
         Ok(())
     }
 
+    /// Get the FFT size
     pub fn size(&self) -> usize {
         self.size
     }
 }
 
+/// FFT utility functions
 pub struct Fft;
 
 impl Fft {

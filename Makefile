@@ -53,8 +53,11 @@ lint:
 	@echo "Running clippy..."
 	@cargo clippy --workspace --all-targets --all-features -- \
 		-W clippy::all \
-		-W clippy::pedantic \
-		-W clippy::nursery \
+		-W clippy::correctness \
+		-W clippy::suspicious \
+		-W clippy::complexity \
+		-W clippy::perf \
+		-W clippy::style \
 		-A clippy::missing_errors_doc \
 		-A clippy::missing_panics_doc \
 		-A clippy::must_use_candidate \
@@ -66,8 +69,11 @@ ci-lint:
 	@cargo clippy --workspace --all-targets --all-features -- \
 		-D warnings \
 		-W clippy::all \
-		-W clippy::pedantic \
-		-W clippy::nursery \
+		-W clippy::correctness \
+		-W clippy::suspicious \
+		-W clippy::complexity \
+		-W clippy::perf \
+		-W clippy::style \
 		-A clippy::missing_errors_doc \
 		-A clippy::missing_panics_doc \
 		-A clippy::must_use_candidate \

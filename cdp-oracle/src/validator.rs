@@ -150,6 +150,7 @@ impl Validator {
 mod tests {
     use super::*;
 
+    #[allow(dead_code)]
     struct TestProcessor;
 
     impl CdpProcessor for TestProcessor {

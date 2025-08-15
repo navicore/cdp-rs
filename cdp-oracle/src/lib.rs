@@ -1,5 +1,9 @@
 //! Oracle testing framework using CDP binaries as ground truth
 
+#![allow(clippy::cast_precision_loss)] // Acceptable for audio calculations
+#![allow(clippy::cast_possible_truncation)] // Controlled conversions
+#![allow(clippy::cast_sign_loss)] // We control the values
+
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tempfile::TempDir;

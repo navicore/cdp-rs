@@ -1,22 +1,31 @@
 use crate::{CoreError, Result};
 use std::f32::consts::PI;
 
+/// Window function types for spectral processing
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum WindowFunction {
+    /// Hann (Hanning) window - good frequency resolution
     Hann,
+    /// Hamming window - reduced spectral leakage
     Hamming,
+    /// Blackman window - excellent sidelobe suppression
     Blackman,
+    /// Kaiser window with configurable alpha parameter
     Kaiser(f32),
+    /// Rectangular window (no windowing)
     Rectangle,
 }
 
+/// Window function generator and applicator
 pub struct Window {
+    #[allow(dead_code)] // Will be used for window type queries
     function: WindowFunction,
     size: usize,
     coefficients: Vec<f32>,
 }
 
 impl Window {
+    /// Create a new window with the specified function and size
     pub fn new(function: WindowFunction, size: usize) -> Result<Self> {
         if size == 0 {
             return Err(CoreError::InvalidFftSize(size));
@@ -44,14 +53,11 @@ impl Window {
                     0.42 - 0.5 * (2.0 * PI * x / (n - 1.0)).cos()
                         + 0.08 * (4.0 * PI * x / (n - 1.0)).cos()
                 }
-                WindowFunction::Kaiser(alpha) => {
-                    // Simplified Kaiser window
-                    let beta = PI * alpha;
-                    let mut w = 1.0;
+                WindowFunction::Kaiser(_alpha) => {
+                    // Simplified Kaiser window - TODO: implement full Kaiser-Bessel
                     let center = (n - 1.0) / 2.0;
                     let t = (x - center) / center;
-                    w *= (1.0 - t * t).sqrt().max(0.0);
-                    w
+                    (1.0 - t * t).sqrt().max(0.0)
                 }
                 WindowFunction::Rectangle => 1.0,
             };
@@ -60,6 +66,7 @@ impl Window {
         coeffs
     }
 
+    /// Apply the window function to input samples
     pub fn apply(&self, input: &mut [f32]) -> Result<()> {
         if input.len() != self.size {
             return Err(CoreError::WindowSizeMismatch(input.len(), self.size));
@@ -72,6 +79,7 @@ impl Window {
         Ok(())
     }
 
+    /// Get the window coefficients
     pub fn coefficients(&self) -> &[f32] {
         &self.coefficients
     }

@@ -8,6 +8,7 @@ use cdp_oracle::{validator::CdpProcessor, Result};
 pub struct ExperimentalPvoc {
     fft_size: usize,
     hop_size: usize,
+    #[allow(dead_code)] // Will be used in full implementation
     window: Window,
 }
 
