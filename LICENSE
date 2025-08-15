@@ -1,0 +1,25 @@
+GNU LESSER GENERAL PUBLIC LICENSE
+Version 2.1, February 1999
+
+[Full LGPL 2.1 text would go here]
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+----
+
+CDP-RS respects the original CDP license (LGPL-2.1) to ensure:
+1. Compatibility with the original CDP codebase
+2. Ability to validate against CDP binaries
+3. Preservation of the open-source ethos of CDP
+
+For commercial use: You can use CDP-RS in proprietary software
+as long as you dynamically link to it and make any modifications
+to CDP-RS itself available under LGPL.

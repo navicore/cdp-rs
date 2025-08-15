@@ -1,0 +1,15 @@
+[package]
+name = "cdp-pvoc"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+cdp-core = { path = "../cdp-core" }
+num-complex = { workspace = true }
+ndarray = { workspace = true }
+
+[dev-dependencies]
+cdp-oracle = { path = "../cdp-oracle" }
+approx = { workspace = true }

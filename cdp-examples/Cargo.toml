@@ -1,0 +1,16 @@
+[package]
+name = "cdp-examples"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "oracle_demo"
+path = "src/oracle_demo.rs"
+
+[dependencies]
+cdp-core = { path = "../cdp-core" }
+cdp-oracle = { path = "../cdp-oracle" }
+cdp-sandbox = { path = "../cdp-sandbox" }
+anyhow = { workspace = true }
