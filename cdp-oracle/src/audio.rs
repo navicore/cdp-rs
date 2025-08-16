@@ -19,7 +19,10 @@ impl AudioFile {
             SampleFormat::Int => {
                 let bits = spec.bits_per_sample;
                 let max = (1 << (bits - 1)) as f32;
-                reader.samples::<i32>().map(|s| s.unwrap() as f32 / max).collect()
+                reader
+                    .samples::<i32>()
+                    .map(|s| s.unwrap() as f32 / max)
+                    .collect()
             }
         };
 

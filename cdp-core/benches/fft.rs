@@ -11,7 +11,9 @@ fn benchmark_fft(c: &mut Criterion) {
             let mut output = vec![num_complex::Complex32::new(0.0, 0.0); size];
 
             b.iter(|| {
-                processor.forward(black_box(&input), black_box(&mut output)).unwrap();
+                processor
+                    .forward(black_box(&input), black_box(&mut output))
+                    .unwrap();
             });
         });
 
@@ -22,8 +24,12 @@ fn benchmark_fft(c: &mut Criterion) {
             let mut output = vec![0.0; size];
 
             b.iter(|| {
-                processor.forward(black_box(&input), black_box(&mut spectrum)).unwrap();
-                processor.inverse(black_box(&mut spectrum), black_box(&mut output)).unwrap();
+                processor
+                    .forward(black_box(&input), black_box(&mut spectrum))
+                    .unwrap();
+                processor
+                    .inverse(black_box(&mut spectrum), black_box(&mut output))
+                    .unwrap();
             });
         });
     }

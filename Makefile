@@ -1,7 +1,7 @@
 .PHONY: all build test clean lint fmt check release bench doc install help ci-test ci-lint
 
 # Default target
-all: lint build test
+all: fmt-check lint build test
 
 # Help target
 help:
@@ -145,10 +145,15 @@ validate: lint test bench
 	@echo "Validation complete!"
 	@echo "Next: Run 'make oracle' with CDP installed"
 
-# Quick check before committing
+# Quick check before committing (auto-formats)
 pre-commit: fmt lint test
 	@echo "======================================"
 	@echo "Pre-commit checks passed!"
+
+# Strict check (same as CI, no auto-formatting)
+ci-check: fmt-check ci-lint ci-test
+	@echo "======================================"
+	@echo "CI checks passed locally!"
 
 # CDP binary setup helper
 setup-cdp:

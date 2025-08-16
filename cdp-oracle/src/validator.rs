@@ -107,11 +107,18 @@ impl Validator {
         let spectral_correlation = self.analyzer.compare_spectra(&cdp_spectrum, &rust_spectrum);
 
         // Calculate differences
-        let max_diff =
-            cdp.iter().zip(rust.iter()).map(|(a, b)| (a - b).abs()).fold(0.0f32, f32::max);
+        let max_diff = cdp
+            .iter()
+            .zip(rust.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0f32, f32::max);
 
         let rms_diff = {
-            let sum: f32 = cdp.iter().zip(rust.iter()).map(|(a, b)| (a - b).powi(2)).sum();
+            let sum: f32 = cdp
+                .iter()
+                .zip(rust.iter())
+                .map(|(a, b)| (a - b).powi(2))
+                .sum();
             (sum / min_len as f32).sqrt()
         };
 

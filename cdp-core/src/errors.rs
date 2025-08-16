@@ -13,11 +13,11 @@ pub enum CoreError {
 
     /// Invalid hop size for overlap-add processing
     #[error("Invalid hop size {hop} for window size {window}")]
-    InvalidHopSize { 
+    InvalidHopSize {
         /// Hop size in samples
-        hop: usize, 
+        hop: usize,
         /// Window size in samples
-        window: usize 
+        window: usize,
     },
 
     /// General numerical computation error
