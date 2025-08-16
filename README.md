@@ -16,6 +16,28 @@ CDP-RS aims to:
 - Provide a foundation for next-generation audio tools
 - Enable real-time processing (original CDP is batch-only)
 
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/cdp-rs
+cd cdp-rs
+
+# Install CDP binaries automatically (Mac/Windows/Linux)
+make install-cdp
+
+# Test the installation
+make test-cdp
+
+# Run the full test suite
+make
+
+# Run oracle validation tests
+make oracle
+```
+
+No manual installation required! The build system handles everything.
+
 ## Architecture
 
 ```

@@ -1,4 +1,4 @@
-.PHONY: all build test clean lint fmt fmt-check check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private setup-cdp profile coverage size audit
+.PHONY: all build test clean lint fmt fmt-check check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private build-cdp install-cdp test-cdp clean-cdp cdp-env install-deps profile coverage size audit
 
 # Default target
 all: fmt-check lint build test
@@ -22,8 +22,14 @@ help:
 	@echo "make ci-lint    - Lint with CI settings (fails on warnings)"
 	@echo "make ci-test    - Run tests with CI settings"
 	@echo ""
+	@echo "CDP Build Management:"
+	@echo "make build-cdp   - Build CDP from source"
+	@echo "make test-cdp    - Test CDP build"
+	@echo "make clean-cdp   - Remove CDP build"
+	@echo "make cdp-env     - Show CDP environment setup"
+	@echo ""
 	@echo "Oracle Testing:"
-	@echo "make oracle     - Run oracle validation tests (requires CDP)"
+	@echo "make oracle     - Run oracle validation tests (auto-installs CDP)"
 	@echo "make demo       - Run the oracle demo"
 
 # Build commands
@@ -112,9 +118,9 @@ install:
 	@cargo install --path cdp-examples
 
 # Oracle testing
-oracle:
+oracle: build-cdp
 	@echo "Running oracle validation tests..."
-	@CDP_PATH=$${CDP_PATH:-/usr/local/cdp/bin} cargo test --package cdp-oracle --features integration-tests
+	@CDP_PATH=build/cdp-install/bin cargo test --package cdp-oracle --features integration-tests
 
 demo:
 	@echo "Running oracle demo..."
@@ -155,15 +161,36 @@ ci-check: fmt-check ci-lint ci-test
 	@echo "======================================"
 	@echo "CI checks passed locally!"
 
-# CDP binary setup helper
-setup-cdp:
-	@echo "CDP Setup Instructions:"
-	@echo "======================="
-	@echo "1. Download CDP from: https://github.com/ComposersDesktop/CDP8/releases"
-	@echo "2. Extract to a directory (e.g., /usr/local/cdp)"
-	@echo "3. Set CDP_PATH environment variable:"
-	@echo "   export CDP_PATH=/usr/local/cdp/bin"
-	@echo "4. Run: make oracle"
+# CDP Build and Setup
+build-cdp:
+	@echo "Building CDP from source..."
+	@./scripts/build-cdp.sh
+
+test-cdp:
+	@echo "Testing CDP build..."
+	@export CDP_PATH=build/cdp-install/bin && ./scripts/test-cdp.sh
+
+clean-cdp:
+	@echo "Removing CDP build..."
+	@rm -rf build/cdp build/cdp-install
+	@echo "CDP build removed"
+
+# Convenience targets
+install-deps: build-cdp
+	@echo "All dependencies built!"
+
+# Backwards compatibility
+install-cdp: build-cdp
+	@echo "CDP built from source in build/cdp-install"
+
+# Setup environment for CDP
+cdp-env:
+	@if [ -f build/cdp-install/env.sh ]; then \
+		echo "To set up CDP environment, run:"; \
+		echo "  source build/cdp-install/env.sh"; \
+	else \
+		echo "CDP not built. Run 'make build-cdp' first"; \
+	fi
 
 # Performance profiling
 profile:
