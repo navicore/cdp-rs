@@ -8,8 +8,10 @@ fn main() {
     println!("==========================\n");
 
     // Configure oracle
-    let mut config = OracleConfig::default();
-    config.keep_temp_files = true; // Keep files for inspection
+    let config = OracleConfig {
+        keep_temp_files: true, // Keep files for inspection
+        ..Default::default()
+    };
 
     println!("1. Creating test signals:");
     let sine = TestGenerator::sine_wave(440.0, 0.1, 44100);

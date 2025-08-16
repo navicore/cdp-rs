@@ -44,9 +44,9 @@ impl Window {
         let mut coeffs = vec![0.0; size];
         let n = size as f32;
 
-        for i in 0..size {
+        for (i, coeff) in coeffs.iter_mut().enumerate() {
             let x = i as f32;
-            coeffs[i] = match function {
+            *coeff = match function {
                 WindowFunction::Hann => 0.5 * (1.0 - (2.0 * PI * x / (n - 1.0)).cos()),
                 WindowFunction::Hamming => 0.54 - 0.46 * (2.0 * PI * x / (n - 1.0)).cos(),
                 WindowFunction::Blackman => {

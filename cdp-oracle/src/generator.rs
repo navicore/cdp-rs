@@ -69,9 +69,9 @@ impl TestGenerator {
             let freq = fundamental * h as f32;
             let amplitude = 1.0 / h as f32; // Natural harmonic decay
 
-            for i in 0..num_samples {
+            for (i, sample) in samples.iter_mut().enumerate() {
                 let t = i as f32 / sample_rate as f32;
-                samples[i] += amplitude * (2.0 * PI * freq * t).sin();
+                *sample += amplitude * (2.0 * PI * freq * t).sin();
             }
         }
 
@@ -95,13 +95,13 @@ mod tests {
     fn test_sine_generation() {
         let signal = TestGenerator::sine_wave(440.0, 1.0, 44100);
         assert_eq!(signal.len(), 44100);
-        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0));
+        assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)));
     }
 
     #[test]
     fn test_noise_generation() {
         let signal = TestGenerator::white_noise(1.0, 44100);
         assert_eq!(signal.len(), 44100);
-        assert!(signal.iter().all(|&x| x >= -1.0 && x <= 1.0));
+        assert!(signal.iter().all(|&x| (-1.0..=1.0).contains(&x)));
     }
 }
