@@ -1,0 +1,26 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ # RWD version for newsfsys with PVOC EX support
+-cmake_minimum_required(VERSION 2.8.3)
++cmake_minimum_required(VERSION 3.5)
+ 
+ project (CDP)
+ 
+@@ -12,8 +12,14 @@
+ message(STATUS "${CMAKE_HOME_DIRECTORY}")
+ message(STATUS "installing to ${CMAKE_INSTALL_PREFIX}")
+ 
+-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -std=c++11 -stdlib=libc++")
+-set(CMAKE_C_FLAGS_RELEASE "-O3 ")
++# Fix for modern compilers
++if (APPLE)
++    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -std=c++11")
++    set(CMAKE_C_FLAGS_RELEASE "-O3")
++else()
++    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -std=c++11")
++    set(CMAKE_C_FLAGS_RELEASE "-O3")
++endif()
+ set(CMAKE_VERBOSE_MAKEFILE OFF)
+ 
+ # Project definitions
