@@ -166,14 +166,18 @@ build-cdp:
 	@echo "Building CDP from source..."
 	@./scripts/build-cdp.sh
 
-test-cdp:
+test-cdp: build-cdp
 	@echo "Testing CDP build..."
-	@export CDP_PATH=build/cdp-install/bin && ./scripts/test-cdp.sh
+	@./scripts/test-cdp.sh
+
+demo-cdp: build-cdp
+	@echo "Running CDP demo..."
+	@./scripts/cdp-demo.sh
 
 clean-cdp:
 	@echo "Removing CDP build..."
-	@rm -rf build/cdp build/cdp-install
-	@echo "CDP build removed"
+	@rm -rf build/cdp build/cdp-install test-output cdp-demo-output
+	@echo "CDP build and test files removed"
 
 # Convenience targets
 install-deps: build-cdp
