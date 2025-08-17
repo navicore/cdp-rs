@@ -6,7 +6,7 @@
 
 # UNDER CONSTRUCTION
 
-A faithful Rust port of the Composers Desktop Project (CDP) - preserving 35+ years of spectral processing excellence.
+A faithful Rust port of the Composers Desktop Project ([CDP](https://github.com/ComposersDesktop/CDP8)) - preserving 35+ years of spectral processing excellence.
 
 ## Vision
 
@@ -20,7 +20,7 @@ CDP-RS aims to:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/cdp-rs
+git clone https://github.com/navicore/cdp-rs
 cd cdp-rs
 
 # Install CDP binaries automatically (Mac/Windows/Linux)
