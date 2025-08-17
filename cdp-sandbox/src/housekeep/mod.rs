@@ -3,8 +3,8 @@
 //! This module implements CDP's housekeep operations as a library,
 //! with thin binary wrappers for oracle validation.
 
-use std::path::Path;
 use std::io;
+use std::path::Path;
 
 pub mod copy;
 pub mod wav_cdp;
@@ -17,10 +17,10 @@ pub type Result<T> = std::result::Result<T, HousekeepError>;
 pub enum HousekeepError {
     #[error("IO error: {0}")]
     Io(#[from] io::Error),
-    
+
     #[error("Invalid audio file: {0}")]
     InvalidFile(String),
-    
+
     #[error("Unsupported format: {0}")]
     UnsupportedFormat(String),
 }
@@ -32,7 +32,7 @@ pub fn housekeep(operation: &str, args: &[&str]) -> Result<()> {
         "copy" => {
             if args.len() < 3 {
                 return Err(HousekeepError::InvalidFile(
-                    "Usage: copy <mode> <infile> <outfile>".into()
+                    "Usage: copy <mode> <infile> <outfile>".into(),
                 ));
             }
             let mode = args[0].parse::<i32>().unwrap_or(1);
@@ -40,8 +40,9 @@ pub fn housekeep(operation: &str, args: &[&str]) -> Result<()> {
             let output = Path::new(args[2]);
             copy::copy_file(input, output, mode)
         }
-        _ => Err(HousekeepError::UnsupportedFormat(
-            format!("Unknown operation: {}", operation)
-        ))
+        _ => Err(HousekeepError::UnsupportedFormat(format!(
+            "Unknown operation: {}",
+            operation
+        ))),
     }
 }
