@@ -170,6 +170,10 @@ test-cdp: build-cdp
 	@echo "Testing CDP build..."
 	@./scripts/test-cdp.sh
 
+test-cdp-ci: build-cdp
+	@echo "Testing CDP build (CI mode)..."
+	@./scripts/test-cdp-ci.sh
+
 demo-cdp: build-cdp
 	@echo "Running CDP demo..."
 	@./scripts/cdp-demo.sh
