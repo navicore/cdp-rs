@@ -51,15 +51,11 @@ jobs:
     - name: Build Rust implementations
       run: cargo build --workspace --release
     
-    - name: Generate test audio
-      run: |
-        chmod +x scripts/generate-test-audio.py
-        python3 scripts/generate-test-audio.py
-    
     - name: Run oracle tests
       run: |
         chmod +x scripts/ci-oracle-test.sh
         chmod +x scripts/oracle-compare.py
+        chmod +x scripts/generate-test-audio.py
         bash scripts/ci-oracle-test.sh
     
     - name: Upload test artifacts

@@ -4,14 +4,16 @@ set -e
 
 echo "=== CDP Oracle Testing ==="
 
-# Get to the root directory if we're not already there
-if [ -d "oracle-test" ]; then
-    cd oracle-test
-elif [ -d "../oracle-test" ]; then
-    cd ../oracle-test
-elif [ ! -f "input.wav" ]; then
-    echo "ERROR: Cannot find oracle-test directory"
-    exit 1
+# Create oracle-test directory if it doesn't exist
+if [ ! -d "oracle-test" ]; then
+    mkdir -p oracle-test
+fi
+cd oracle-test
+
+# Generate test audio if it doesn't exist
+if [ ! -f "input.wav" ]; then
+    echo "Generating test audio..."
+    python3 ../scripts/generate-test-audio.py input.wav
 fi
 
 # Test 1: housekeep copy
