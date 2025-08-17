@@ -4,6 +4,7 @@
 //! changed without affecting validated modules.
 
 pub mod experiments;
+pub mod housekeep;
 
 #[cfg(test)]
 mod tests {

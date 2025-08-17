@@ -9,6 +9,8 @@ license.workspace = true
 cdp-core = { path = "../cdp-core" }
 cdp-oracle = { path = "../cdp-oracle" }
 anyhow = { workspace = true }
+thiserror = { workspace = true }
+tempfile = "3.8"
 
 [dev-dependencies]
 criterion = { workspace = true }
