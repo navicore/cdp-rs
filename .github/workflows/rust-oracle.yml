@@ -1,0 +1,68 @@
+name: Rust CDP Oracle Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  oracle-test:
+    name: Oracle Test - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+      fail-fast: false
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install build dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git
+    
+    - name: Install build dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        which cmake || brew install cmake
+    
+    - name: Cache CDP build
+      uses: actions/cache@v4
+      with:
+        path: build/cdp
+        key: ${{ runner.os }}-cdp-v2-${{ hashFiles('scripts/build-cdp.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-cdp-v2-
+    
+    - name: Build CDP from source
+      run: |
+        chmod +x scripts/build-cdp.sh
+        bash scripts/build-cdp.sh
+    
+    - name: Build Rust implementations
+      run: cargo build --workspace --release
+    
+    - name: Run oracle tests
+      run: |
+        chmod +x scripts/ci-oracle-test.sh
+        chmod +x scripts/oracle-compare.py
+        chmod +x scripts/generate-test-audio.py
+        bash scripts/ci-oracle-test.sh
+    
+    - name: Upload test artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: failed-oracle-${{ runner.os }}
+        path: |
+          oracle-test/*.wav
+          oracle-test/*.txt

@@ -138,6 +138,8 @@ dependencies = [
  "cdp-core",
  "cdp-oracle",
  "criterion",
+ "tempfile",
+ "thiserror",
 ]
 
 [[package]]
