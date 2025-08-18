@@ -5,6 +5,7 @@
 
 pub mod experiments;
 pub mod housekeep;
+pub mod sndinfo;
 
 #[cfg(test)]
 mod tests {
