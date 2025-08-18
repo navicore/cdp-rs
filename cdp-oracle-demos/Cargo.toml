@@ -1,5 +1,5 @@
 [package]
-name = "cdp-examples"
+name = "cdp-oracle-demos"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

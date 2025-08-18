@@ -6,7 +6,7 @@ members = [
     "cdp-spectral",
     "cdp-oracle",
     "cdp-sandbox",
-    "cdp-examples",
+    "cdp-oracle-demos",
 ]
 
 [workspace.package]

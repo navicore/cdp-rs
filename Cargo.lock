@@ -92,16 +92,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cdp-examples"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cdp-core",
- "cdp-oracle",
- "cdp-sandbox",
-]
-
-[[package]]
 name = "cdp-oracle"
 version = "0.1.0"
 dependencies = [
@@ -117,6 +107,16 @@ dependencies = [
  "tempfile",
  "thiserror",
  "which",
+]
+
+[[package]]
+name = "cdp-oracle-demos"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cdp-core",
+ "cdp-oracle",
+ "cdp-sandbox",
 ]
 
 [[package]]

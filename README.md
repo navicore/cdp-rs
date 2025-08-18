@@ -42,11 +42,13 @@ No manual installation required! The build system handles everything.
 
 ```
 cdp-rs/
-├── cdp-core/      # Core DSP primitives (FFT, windows, etc) - FROZEN after validation
-├── cdp-pvoc/      # Phase vocoder implementation - FROZEN after validation  
-├── cdp-spectral/  # Spectral processors - FROZEN after validation
-├── cdp-oracle/    # Testing framework using CDP binaries as ground truth
-└── cdp-sandbox/   # Active development area (safe for LLM modification)
+├── cdp-core/         # Core DSP primitives (FFT, windows, etc) - FROZEN after validation
+├── cdp-pvoc/         # Phase vocoder implementation - FROZEN after validation  
+├── cdp-spectral/     # Spectral processors - FROZEN after validation
+├── cdp-oracle/       # Testing framework using CDP binaries as ground truth
+├── cdp-sandbox/      # Active development area (safe for LLM modification)
+│   └── examples/     # User-facing examples using public CDP-RS API
+└── cdp-oracle-demos/ # Internal oracle testing demonstrations (not for users)
 ```
 
 ## Development Philosophy
@@ -87,8 +89,35 @@ For a pure MIT alternative in the future, we could:
 - Create clean-room implementations based on specifications
 - Build a new API that doesn't derive from CDP's codebase
 
+## Examples
+
+Run the included examples to see CDP-RS in action:
+
+```bash
+# First, generate sample audio files in your current directory
+cargo run -p cdp-sandbox --example generate_samples
+
+# Then run any of the processing examples:
+
+# Basic audio processing - gain, normalize, mix to mono
+cargo run -p cdp-sandbox --example audio_processing
+
+# Batch normalize multiple files to consistent level
+cargo run -p cdp-sandbox --example batch_normalize
+
+# Extract channels from stereo files
+cargo run -p cdp-sandbox --example channel_extract
+```
+
+The examples are self-contained and work with WAV files in your current directory. The `generate_samples` example creates test files so you can run the examples immediately without needing your own audio files.
+
+Check the `cdp-sandbox/examples/` directory source code to see how to use the CDP-RS API in your own projects.
+
 ## Status
 
+- [x] Housekeep Copy (CDP WAV format with PEAK chunks)
+- [x] Channel extraction and mixing
+- [x] Gain and normalization
 - [ ] Phase Vocoder (pvoc)
 - [ ] Spectral Blur
 - [ ] Time Stretch

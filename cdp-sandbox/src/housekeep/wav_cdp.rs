@@ -1,32 +1,30 @@
-//! CDP-compatible WAV file I/O
+//! WAV file I/O with CDP-specific metadata
 //!
-//! This module implements WAV file reading and writing that exactly matches
-//! CDP's format, including PEAK chunks, cue points, and metadata.
+//! Handles reading and writing WAV files with CDP's PEAK chunks,
+//! cue points, and LIST metadata.
 
+use super::Result;
 use std::fs::File;
-use std::io::{self, BufReader, BufWriter, Read, Seek, Write};
+use std::io::{self, BufReader, BufWriter, Read, Write};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// CDP-specific WAV chunks
+/// WAV format information
 #[derive(Debug, Clone)]
-pub struct CdpChunks {
-    pub peak: PeakChunk,
-    pub cue: CueChunk,
-    pub list: ListChunk,
+pub struct WavFormat {
+    pub channels: u16,
+    pub sample_rate: u32,
+    pub bits_per_sample: u16,
+    pub data_size: u32,
 }
 
+/// CDP-specific PEAK chunk
 #[derive(Debug, Clone)]
 pub struct PeakChunk {
     pub version: u32,
     pub timestamp: u32,
     pub peak_value: f32,
     pub peak_position: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct CueChunk {
-    pub cue_points: Vec<CuePoint>,
 }
 
 #[derive(Debug, Clone)]
@@ -40,20 +38,24 @@ pub struct CuePoint {
 }
 
 #[derive(Debug, Clone)]
+pub struct CueChunk {
+    pub cue_points: Vec<CuePoint>,
+}
+
+#[derive(Debug, Clone)]
 pub struct ListChunk {
     pub note_data: Vec<u8>,
 }
 
-/// Simple WAV format info
+/// CDP metadata chunks
 #[derive(Debug, Clone)]
-pub struct WavFormat {
-    pub channels: u16,
-    pub sample_rate: u32,
-    pub bits_per_sample: u16,
-    pub data_size: u32,
+pub struct CdpChunks {
+    pub peak: PeakChunk,
+    pub cue: CueChunk,
+    pub list: ListChunk,
 }
 
-/// Read a basic WAV file (for internal use by other operations)
+/// Read a WAV file (basic version without CDP metadata)
 pub fn read_wav_basic(input: &Path) -> io::Result<(WavFormat, Vec<i16>)> {
     let mut reader = BufReader::new(File::open(input)?);
     read_wav(&mut reader)
@@ -74,13 +76,12 @@ pub fn write_wav_cdp(output: &Path, format: &WavFormat, samples: &[i16]) -> io::
     // Write output
     let mut writer = BufWriter::new(File::create(output)?);
     write_wav_cdp_internal(&mut writer, format, samples, &cdp_chunks)?;
-
+    writer.flush()?;
     Ok(())
 }
 
 /// Copy a WAV file with CDP metadata
-pub fn copy_wav_cdp_format(input: &Path, output: &Path) -> io::Result<()> {
-    // Read input file
+pub fn copy_wav_cdp(input: &Path, output: &Path) -> Result<()> {
     let mut reader = BufReader::new(File::open(input)?);
     let (format, samples) = read_wav(&mut reader)?;
 
@@ -94,49 +95,106 @@ pub fn copy_wav_cdp_format(input: &Path, output: &Path) -> io::Result<()> {
         samples.len() as u32 / (format.channels as u32),
     );
 
-    // Write output with CDP format
+    // Write output
     let mut writer = BufWriter::new(File::create(output)?);
     write_wav_cdp_internal(&mut writer, &format, &samples, &cdp_chunks)?;
-
+    writer.flush()?;
     Ok(())
 }
 
-/// Read a basic WAV file (simplified for now)
+/// Read WAV file (handles both simple and CDP-format WAVs)
 fn read_wav<R: Read>(reader: &mut R) -> io::Result<(WavFormat, Vec<i16>)> {
-    let mut header = [0u8; 44];
+    let mut header = [0u8; 12];
     reader.read_exact(&mut header)?;
 
     // Verify RIFF header
-    if &header[0..4] != b"RIFF" || &header[8..12] != b"WAVE" {
+    if &header[0..4] != b"RIFF" {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "Not a WAV file"));
     }
 
-    // Parse fmt chunk (assuming it's at standard position)
-    if &header[12..16] != b"fmt " {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "fmt chunk not found",
-        ));
+    // Skip file size (bytes 4-7)
+
+    if &header[8..12] != b"WAVE" {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "Not a WAV file"));
     }
 
-    let format = WavFormat {
-        channels: u16::from_le_bytes([header[22], header[23]]),
-        sample_rate: u32::from_le_bytes([header[24], header[25], header[26], header[27]]),
-        bits_per_sample: u16::from_le_bytes([header[34], header[35]]),
-        data_size: u32::from_le_bytes([header[40], header[41], header[42], header[43]]),
-    };
+    // Now read chunks until we find fmt and data
+    let mut format: Option<WavFormat> = None;
+    let mut samples = Vec::new();
 
-    // Read all samples (assuming 16-bit)
-    let sample_count = format.data_size as usize / 2;
-    let mut samples = vec![0i16; sample_count];
+    loop {
+        let mut chunk_header = [0u8; 8];
+        if reader.read_exact(&mut chunk_header).is_err() {
+            break; // End of file
+        }
 
-    for sample in &mut samples {
-        let mut buf = [0u8; 2];
-        reader.read_exact(&mut buf)?;
-        *sample = i16::from_le_bytes(buf);
+        let chunk_id = &chunk_header[0..4];
+        let chunk_size = u32::from_le_bytes([
+            chunk_header[4],
+            chunk_header[5],
+            chunk_header[6],
+            chunk_header[7],
+        ]);
+
+        match chunk_id {
+            b"fmt " => {
+                // Read format chunk
+                let mut fmt_data = vec![0u8; chunk_size as usize];
+                reader.read_exact(&mut fmt_data)?;
+
+                format = Some(WavFormat {
+                    channels: u16::from_le_bytes([fmt_data[2], fmt_data[3]]),
+                    sample_rate: u32::from_le_bytes([
+                        fmt_data[4],
+                        fmt_data[5],
+                        fmt_data[6],
+                        fmt_data[7],
+                    ]),
+                    bits_per_sample: u16::from_le_bytes([fmt_data[14], fmt_data[15]]),
+                    data_size: 0, // Will be set when we find data chunk
+                });
+            }
+            b"data" => {
+                // Read data chunk
+                if let Some(ref mut fmt) = format {
+                    fmt.data_size = chunk_size;
+
+                    // Read all samples (assuming 16-bit)
+                    let sample_count = chunk_size as usize / 2;
+                    samples = vec![0i16; sample_count];
+
+                    for sample in &mut samples {
+                        let mut buf = [0u8; 2];
+                        reader.read_exact(&mut buf)?;
+                        *sample = i16::from_le_bytes(buf);
+                    }
+                    break; // We have everything we need
+                }
+            }
+            _ => {
+                // Skip unknown chunks
+                let mut skip_buf = vec![0u8; chunk_size as usize];
+                reader.read_exact(&mut skip_buf)?;
+            }
+        }
+
+        // Ensure chunk size is even (WAV spec requires word alignment)
+        if chunk_size % 2 != 0 {
+            let mut padding = [0u8; 1];
+            let _ = reader.read_exact(&mut padding);
+        }
     }
 
-    Ok((format, samples))
+    if let Some(format) = format {
+        if !samples.is_empty() {
+            return Ok((format, samples));
+        }
+    }
+
+    Err(io::Error::new(
+        io::ErrorKind::InvalidData,
+        "Missing fmt or data chunk",
+    ))
 }
 
 /// Calculate peak value from samples  
@@ -171,7 +229,7 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
         },
         cue: CueChunk {
             cue_points: vec![CuePoint {
-                id: *b"sfif",
+                id: [0, 0, 0, 0],
                 position: 0,
                 data_chunk_id: *b"data",
                 chunk_start: 0,
@@ -180,35 +238,13 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
             }],
         },
         list: ListChunk {
-            note_data: create_note_data(),
+            note_data: b"CDP Release 7.1 2016".to_vec(),
         },
     }
 }
 
-/// Create the LIST/note chunk data
-fn create_note_data() -> Vec<u8> {
-    let mut data = Vec::with_capacity(2004);
-
-    // Start with CDP marker
-    data.extend_from_slice(b"sfifDATE\n");
-
-    // Add timestamp or ID
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-    data.extend_from_slice(format!("{:X}\n", timestamp).as_bytes());
-
-    // Pad to 2004 bytes with newlines
-    while data.len() < 2004 {
-        data.push(b'\n');
-    }
-
-    data
-}
-
-/// Write WAV file with CDP chunks (internal)
-fn write_wav_cdp_internal<W: Write + Seek>(
+/// Write WAV file with CDP chunks
+fn write_wav_cdp_internal<W: Write>(
     writer: &mut W,
     format: &WavFormat,
     samples: &[i16],
@@ -216,29 +252,33 @@ fn write_wav_cdp_internal<W: Write + Seek>(
 ) -> io::Result<()> {
     // Calculate sizes
     let data_size = samples.len() * 2;
-    let peak_chunk_size = 16;
-    let cue_chunk_size = 28;
-    let list_chunk_size = 4 + 8 + cdp_chunks.list.note_data.len(); // "adtl" + "note" + size + data
-    let total_size = 4 + // "WAVE"
-                     8 + 16 + // fmt chunk
-                     8 + peak_chunk_size + // PEAK chunk
-                     8 + cue_chunk_size + // cue chunk
-                     8 + list_chunk_size + // LIST chunk
-                     8 + data_size; // data chunk
+    let fmt_chunk_size = 16;
+    let peak_chunk_size = 16; // 4 * 4 bytes
+    let cue_chunk_size = 28; // 4 + 24 for one cue point
+    let list_chunk_size = 4 + 8 + cdp_chunks.list.note_data.len(); // "adtl" + "note" header + data
+
+    let riff_size = 4 + // "WAVE"
+        8 + fmt_chunk_size +
+        8 + peak_chunk_size +
+        8 + cue_chunk_size +
+        8 + list_chunk_size +
+        8 + data_size;
 
     // Write RIFF header
     writer.write_all(b"RIFF")?;
-    writer.write_all(&(total_size as u32).to_le_bytes())?;
+    writer.write_all(&(riff_size as u32).to_le_bytes())?;
     writer.write_all(b"WAVE")?;
 
     // Write fmt chunk
     writer.write_all(b"fmt ")?;
-    writer.write_all(&16u32.to_le_bytes())?; // fmt chunk size
-    writer.write_all(&1u16.to_le_bytes())?; // PCM format
+    writer.write_all(&16u32.to_le_bytes())?; // chunk size
+    writer.write_all(&1u16.to_le_bytes())?; // audio format (PCM)
     writer.write_all(&format.channels.to_le_bytes())?;
     writer.write_all(&format.sample_rate.to_le_bytes())?;
-    writer.write_all(&(format.sample_rate * format.channels as u32 * 2).to_le_bytes())?; // byte rate
-    writer.write_all(&(format.channels * 2).to_le_bytes())?; // block align
+    let byte_rate = format.sample_rate * format.channels as u32 * 2;
+    writer.write_all(&byte_rate.to_le_bytes())?;
+    let block_align = format.channels * 2;
+    writer.write_all(&block_align.to_le_bytes())?;
     writer.write_all(&format.bits_per_sample.to_le_bytes())?;
 
     // Write PEAK chunk
@@ -276,4 +316,29 @@ fn write_wav_cdp_internal<W: Write + Seek>(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_peak_calculation() {
+        let samples = vec![0, 1000, -2000, 3000, -32767];
+        let (peak, pos) = calculate_peak(&samples);
+        assert_eq!(peak, 32767.0 / 32767.0);
+        assert_eq!(pos, 4);
+    }
+
+    #[test]
+    fn test_wav_format() {
+        let format = WavFormat {
+            channels: 2,
+            sample_rate: 44100,
+            bits_per_sample: 16,
+            data_size: 176400,
+        };
+        assert_eq!(format.channels, 2);
+        assert_eq!(format.sample_rate, 44100);
+    }
 }
