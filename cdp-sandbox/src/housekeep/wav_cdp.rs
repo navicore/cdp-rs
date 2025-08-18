@@ -53,6 +53,31 @@ pub struct WavFormat {
     pub data_size: u32,
 }
 
+/// Read a basic WAV file (for internal use by other operations)
+pub fn read_wav_basic(input: &Path) -> io::Result<(WavFormat, Vec<i16>)> {
+    let mut reader = BufReader::new(File::open(input)?);
+    read_wav(&mut reader)
+}
+
+/// Write a WAV file with CDP metadata (for internal use)
+pub fn write_wav_cdp(output: &Path, format: &WavFormat, samples: &[i16]) -> io::Result<()> {
+    // Calculate peak
+    let (peak_value, peak_position) = calculate_peak(samples);
+
+    // Create CDP chunks
+    let cdp_chunks = create_cdp_chunks(
+        peak_value,
+        peak_position,
+        samples.len() as u32 / (format.channels as u32),
+    );
+
+    // Write output
+    let mut writer = BufWriter::new(File::create(output)?);
+    write_wav_cdp_internal(&mut writer, format, samples, &cdp_chunks)?;
+
+    Ok(())
+}
+
 /// Copy a WAV file with CDP metadata
 pub fn copy_wav_cdp_format(input: &Path, output: &Path) -> io::Result<()> {
     // Read input file
@@ -71,7 +96,7 @@ pub fn copy_wav_cdp_format(input: &Path, output: &Path) -> io::Result<()> {
 
     // Write output with CDP format
     let mut writer = BufWriter::new(File::create(output)?);
-    write_wav_cdp(&mut writer, &format, &samples, &cdp_chunks)?;
+    write_wav_cdp_internal(&mut writer, &format, &samples, &cdp_chunks)?;
 
     Ok(())
 }
@@ -182,8 +207,8 @@ fn create_note_data() -> Vec<u8> {
     data
 }
 
-/// Write WAV file with CDP chunks
-fn write_wav_cdp<W: Write + Seek>(
+/// Write WAV file with CDP chunks (internal)
+fn write_wav_cdp_internal<W: Write + Seek>(
     writer: &mut W,
     format: &WavFormat,
     samples: &[i16],
