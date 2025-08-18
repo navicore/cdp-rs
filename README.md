@@ -42,15 +42,19 @@ No manual installation required! The build system handles everything.
 
 ```
 cdp-rs/
-├── cdp-core/         # Core DSP primitives (FFT, windows, etc) - FROZEN after validation
-├── cdp-pvoc/         # Phase vocoder implementation - FROZEN after validation  
-├── cdp-spectral/     # Spectral processors - FROZEN after validation
-├── cdp-housekeep/    # Channel operations and file management
-├── cdp-modify/       # Audio modification (gain, normalize, etc)
-├── cdp-sndinfo/      # Sound file analysis and properties
-├── cdp-oracle/       # Testing framework using CDP binaries as ground truth
-├── cdp-sandbox/      # Active development area (safe for LLM modification)
-└── cdp-oracle-demos/ # Internal oracle testing demonstrations (not for users)
+├── crates/
+│   ├── cdp-core/         # Core DSP primitives (FFT, windows, etc) - FROZEN after validation
+│   ├── cdp-pvoc/         # Phase vocoder implementation - FROZEN after validation  
+│   ├── cdp-spectral/     # Spectral processors - FROZEN after validation
+│   ├── cdp-housekeep/    # Channel operations and file management
+│   ├── cdp-modify/       # Audio modification (gain, normalize, etc)
+│   ├── cdp-sndinfo/      # Sound file analysis and properties
+│   ├── cdp-oracle/       # Testing framework using CDP binaries as ground truth
+│   ├── cdp-sandbox/      # Active development area (safe for LLM modification)
+│   └── cdp-oracle-demos/ # Internal oracle testing demonstrations (not for users)
+├── scripts/              # Build and test scripts
+├── docs/                 # Documentation
+└── build/                # CDP binary builds (generated)
 ```
 
 ## Development Philosophy
@@ -114,8 +118,8 @@ cargo run -p cdp-housekeep --example channel_extract
 The examples are self-contained and work with WAV files in your current directory. The `generate_samples` example creates test files so you can run the examples immediately without needing your own audio files.
 
 Examples are located in their respective crate directories:
-- `cdp-housekeep/examples/` - File I/O and channel operations
-- `cdp-modify/examples/` - Audio processing and modifications
+- `crates/cdp-housekeep/examples/` - File I/O and channel operations
+- `crates/cdp-modify/examples/` - Audio processing and modifications
 
 ## Status
 

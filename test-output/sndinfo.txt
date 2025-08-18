@@ -1,4 +1,0 @@
-CDP Release 7.1 2016
-Unknown option 'test_input.wav'
-
-
