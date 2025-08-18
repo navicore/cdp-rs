@@ -2,7 +2,6 @@
 //!
 //! This exists purely for oracle validation against CDP.
 
-use cdp_sandbox::modify;
 use std::env;
 use std::process;
 
@@ -24,7 +23,7 @@ fn main() {
 
     let op_args: Vec<&str> = args[3..].iter().map(|s| s.as_str()).collect();
 
-    if let Err(e) = modify::modify(operation, mode, &op_args) {
+    if let Err(e) = cdp_modify::modify(operation, mode, &op_args) {
         eprintln!("ERROR: {}", e);
         process::exit(1);
     }

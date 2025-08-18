@@ -1,12 +1,12 @@
 //! Example: Batch normalize multiple audio files
 //!
 //! First generate the sample files:
-//!   cargo run -p cdp-sandbox --example generate_samples
+//!   cargo run -p cdp-housekeep --example generate_samples
 //!
 //! Then run this example:
-//!   cargo run -p cdp-sandbox --example batch_normalize
+//!   cargo run -p cdp-modify --example batch_normalize
 
-use cdp_sandbox::modify::loudness;
+use cdp_modify::loudness;
 use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check if sample files exist
     if !Path::new(&input_files[0]).exists() {
         println!("Sample files not found!");
-        println!("Please run: cargo run -p cdp-sandbox --example generate_samples");
+        println!("Please run: cargo run -p cdp-housekeep --example generate_samples");
         return Ok(());
     }
 

@@ -1,9 +1,9 @@
 //! Generate sample audio files for the examples
 //!
 //! Run this first to create the sample WAV files needed by other examples:
-//! cargo run -p cdp-sandbox --example generate_samples
+//! cargo run -p cdp-housekeep --example generate_samples
 
-use cdp_sandbox::housekeep::wav_cdp::{self, WavFormat};
+use cdp_housekeep::wav_cdp::{self, WavFormat};
 use std::f32::consts::PI;
 use std::path::Path;
 
@@ -30,9 +30,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n✓ All sample files generated in current directory");
     println!("\nYou can now run the other examples:");
-    println!("  cargo run -p cdp-sandbox --example audio_processing");
-    println!("  cargo run -p cdp-sandbox --example batch_normalize");
-    println!("  cargo run -p cdp-sandbox --example channel_extract");
+    println!("  cargo run -p cdp-modify --example audio_processing");
+    println!("  cargo run -p cdp-modify --example batch_normalize");
+    println!("  cargo run -p cdp-housekeep --example channel_extract");
 
     Ok(())
 }

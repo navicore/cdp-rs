@@ -7,6 +7,9 @@ license.workspace = true
 
 [dependencies]
 cdp-core = { path = "../cdp-core" }
+cdp-housekeep = { path = "../cdp-housekeep" }
+cdp-modify = { path = "../cdp-modify" }
+cdp-sndinfo = { path = "../cdp-sndinfo" }
 cdp-oracle = { path = "../cdp-oracle" }
 anyhow = { workspace = true }
 thiserror = { workspace = true }

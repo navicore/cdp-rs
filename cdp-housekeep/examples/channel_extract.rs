@@ -1,13 +1,12 @@
 //! Example: Extract individual channels from multi-channel files
 //!
 //! First generate the sample files:
-//!   cargo run -p cdp-sandbox --example generate_samples
+//!   cargo run -p cdp-housekeep --example generate_samples
 //!
 //! Then run this example:
-//!   cargo run -p cdp-sandbox --example channel_extract
+//!   cargo run -p cdp-housekeep --example channel_extract
 
-use cdp_sandbox::housekeep::chans;
-use cdp_sandbox::housekeep::wav_cdp;
+use cdp_housekeep::{chans, wav_cdp};
 use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check if sample file exists
     if !stereo_file.exists() {
         println!("Sample files not found!");
-        println!("Please run: cargo run -p cdp-sandbox --example generate_samples");
+        println!("Please run: cargo run -p cdp-housekeep --example generate_samples");
         return Ok(());
     }
 

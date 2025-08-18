@@ -2,8 +2,8 @@
 //!
 //! Shows format information, duration, peak levels, etc.
 
-use super::{Result, SndInfoError};
-use crate::housekeep::wav_cdp;
+use super::{Result, SndinfoError};
+use cdp_housekeep::wav_cdp;
 use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::path::Path;
@@ -74,7 +74,7 @@ fn read_wav_with_metadata<R: Read + Seek>(
 
     // Verify RIFF header
     if &header[0..4] != b"RIFF" || &header[8..12] != b"WAVE" {
-        return Err(SndInfoError::InvalidFile("Not a WAV file".into()));
+        return Err(SndinfoError::InvalidFile("Not a WAV file".into()));
     }
 
     let mut format_info = None;
@@ -160,7 +160,7 @@ fn read_wav_with_metadata<R: Read + Seek>(
         };
         Ok((format, peak_info))
     } else {
-        Err(SndInfoError::InvalidFile("No format chunk found".into()))
+        Err(SndinfoError::InvalidFile("No format chunk found".into()))
     }
 }
 

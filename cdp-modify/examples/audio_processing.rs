@@ -1,14 +1,14 @@
 //! Example: Basic audio processing with CDP-RS
 //!
 //! First generate the sample files:
-//!   cargo run -p cdp-sandbox --example generate_samples
+//!   cargo run -p cdp-housekeep --example generate_samples
 //!
 //! Then run this example:
-//!   cargo run -p cdp-sandbox --example audio_processing
+//!   cargo run -p cdp-modify --example audio_processing
 
-use cdp_sandbox::housekeep::chans;
-use cdp_sandbox::modify::loudness;
-use cdp_sandbox::sndinfo::props;
+use cdp_housekeep::chans;
+use cdp_modify::loudness;
+use cdp_sndinfo::props;
 use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Check if sample files exist
     if !stereo_input.exists() {
         println!("Sample files not found!");
-        println!("Please run: cargo run -p cdp-sandbox --example generate_samples");
+        println!("Please run: cargo run -p cdp-housekeep --example generate_samples");
         return Ok(());
     }
 

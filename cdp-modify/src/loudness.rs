@@ -3,7 +3,7 @@
 //! Provides gain adjustment, normalization, and other amplitude-related operations
 
 use super::{ModifyError, Result};
-use crate::housekeep::wav_cdp;
+use cdp_housekeep::wav_cdp;
 use std::path::Path;
 
 /// Apply gain to audio samples
