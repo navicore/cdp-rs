@@ -6,6 +6,7 @@
 use std::io;
 use std::path::Path;
 
+pub mod chans;
 pub mod copy;
 pub mod wav_cdp;
 
@@ -39,6 +40,15 @@ pub fn housekeep(operation: &str, args: &[&str]) -> Result<()> {
             let input = Path::new(args[1]);
             let output = Path::new(args[2]);
             copy::copy_file(input, output, mode)
+        }
+        "chans" => {
+            if args.is_empty() {
+                return Err(HousekeepError::InvalidFile(
+                    "Usage: chans <mode> <infile> [args...]".into(),
+                ));
+            }
+            let mode = args[0].parse::<i32>().unwrap_or(1);
+            chans::chans(mode, &args[1..])
         }
         _ => Err(HousekeepError::UnsupportedFormat(format!(
             "Unknown operation: {}",
