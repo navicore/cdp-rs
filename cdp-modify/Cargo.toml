@@ -1,0 +1,15 @@
+[package]
+name = "cdp-modify"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+cdp-housekeep = { path = "../cdp-housekeep" }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+cdp-sndinfo = { path = "../cdp-sndinfo" }
+tempfile = "3.20"

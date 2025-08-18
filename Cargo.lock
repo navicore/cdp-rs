@@ -92,13 +92,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "cdp-examples"
+name = "cdp-housekeep"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "cdp-core",
- "cdp-oracle",
- "cdp-sandbox",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
+name = "cdp-modify"
+version = "0.1.0"
+dependencies = [
+ "cdp-housekeep",
+ "cdp-sndinfo",
+ "tempfile",
+ "thiserror",
 ]
 
 [[package]]
@@ -120,6 +128,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cdp-oracle-demos"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cdp-core",
+ "cdp-oracle",
+ "cdp-sandbox",
+]
+
+[[package]]
 name = "cdp-pvoc"
 version = "0.1.0"
 dependencies = [
@@ -136,9 +154,20 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cdp-core",
+ "cdp-housekeep",
+ "cdp-modify",
  "cdp-oracle",
+ "cdp-sndinfo",
  "criterion",
  "tempfile",
+ "thiserror",
+]
+
+[[package]]
+name = "cdp-sndinfo"
+version = "0.1.0"
+dependencies = [
+ "cdp-housekeep",
  "thiserror",
 ]
 

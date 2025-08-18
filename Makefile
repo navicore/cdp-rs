@@ -1,7 +1,7 @@
 .PHONY: all build test clean lint fmt fmt-check check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private build-cdp install-cdp test-cdp clean-cdp cdp-env install-deps profile coverage size audit
 
 # Default target
-all: fmt-check lint build test
+all: fmt-check lint build test oracle-local
 
 # Help target
 help:
@@ -121,6 +121,15 @@ install:
 oracle: build-cdp
 	@echo "Running oracle validation tests..."
 	@CDP_PATH=build/cdp-install/bin cargo test --package cdp-oracle --features integration-tests
+
+oracle-local:
+	@echo "Running oracle tests (if CDP is available)..."
+	@if [ -d "build/cdp/NewRelease" ]; then \
+		echo "CDP found, running oracle tests..."; \
+		./scripts/ci-oracle-test.sh; \
+	else \
+		echo "CDP not built, skipping oracle tests. Run 'make oracle' to build CDP and test."; \
+	fi
 
 demo:
 	@echo "Running oracle demo..."
