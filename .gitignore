@@ -24,6 +24,11 @@ Thumbs.db
 *.pvx
 /temp/
 /tmp/
+/oracle-test/
+/oracle-test-tmp/
+/test-output/
+/test-output-ci/
+/cdp-demo-output/
 
 # Coverage
 *.profraw

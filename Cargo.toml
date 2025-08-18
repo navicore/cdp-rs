@@ -1,15 +1,15 @@
 [workspace]
 resolver = "2"
 members = [
-    "cdp-core",
-    "cdp-pvoc", 
-    "cdp-spectral",
-    "cdp-housekeep",
-    "cdp-modify",
-    "cdp-sndinfo",
-    "cdp-oracle",
-    "cdp-sandbox",
-    "cdp-oracle-demos",
+    "crates/cdp-core",
+    "crates/cdp-pvoc", 
+    "crates/cdp-spectral",
+    "crates/cdp-housekeep",
+    "crates/cdp-modify",
+    "crates/cdp-sndinfo",
+    "crates/cdp-oracle",
+    "crates/cdp-sandbox",
+    "crates/cdp-oracle-demos",
 ]
 
 [workspace.package]
