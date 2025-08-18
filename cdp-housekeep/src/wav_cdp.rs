@@ -222,14 +222,14 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
 
     // Create CDP's fixed-size note chunk (2004 bytes)
     let mut note_data = Vec::with_capacity(2004);
-    
+
     // Write "sfif" identifier
     note_data.extend_from_slice(b"sfif");
-    
+
     // Write "DATE\n" followed by timestamp in uppercase hex
     note_data.extend_from_slice(b"DATE\n");
     note_data.extend_from_slice(format!("{:X}\n", timestamp).as_bytes());
-    
+
     // Pad with newlines to exactly 2004 bytes
     while note_data.len() < 2004 {
         note_data.push(b'\n');
@@ -244,7 +244,7 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
         },
         cue: CueChunk {
             cue_points: vec![CuePoint {
-                id: [b's', b'f', b'i', b'f'],  // CDP uses "sfif" as cue point ID
+                id: [b's', b'f', b'i', b'f'], // CDP uses "sfif" as cue point ID
                 position: 0,
                 data_chunk_id: *b"data",
                 chunk_start: 0,
@@ -252,9 +252,7 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
                 sample_offset: 0,
             }],
         },
-        list: ListChunk {
-            note_data,
-        },
+        list: ListChunk { note_data },
     }
 }
 
@@ -270,7 +268,7 @@ fn write_wav_cdp_internal<W: Write>(
     let fmt_chunk_size = 16;
     let peak_chunk_size = 16; // 4 * 4 bytes
     let cue_chunk_size = 28; // 4 + 24 for one cue point
-    
+
     // LIST chunk needs padding if note_data length is odd
     let note_data_padded_len = if cdp_chunks.list.note_data.len() % 2 != 0 {
         cdp_chunks.list.note_data.len() + 1
@@ -329,7 +327,7 @@ fn write_wav_cdp_internal<W: Write>(
     writer.write_all(b"note")?;
     writer.write_all(&(cdp_chunks.list.note_data.len() as u32).to_le_bytes())?;
     writer.write_all(&cdp_chunks.list.note_data)?;
-    
+
     // Add padding if note_data length is odd
     if cdp_chunks.list.note_data.len() % 2 != 0 {
         writer.write_all(&[0u8])?;
