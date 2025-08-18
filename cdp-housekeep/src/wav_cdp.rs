@@ -220,6 +220,21 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
         .unwrap()
         .as_secs() as u32;
 
+    // Create CDP's fixed-size note chunk (2004 bytes)
+    let mut note_data = Vec::with_capacity(2004);
+    
+    // Write "sfif" identifier
+    note_data.extend_from_slice(b"sfif");
+    
+    // Write "DATE\n" followed by timestamp in uppercase hex
+    note_data.extend_from_slice(b"DATE\n");
+    note_data.extend_from_slice(format!("{:X}\n", timestamp).as_bytes());
+    
+    // Pad with newlines to exactly 2004 bytes
+    while note_data.len() < 2004 {
+        note_data.push(b'\n');
+    }
+
     CdpChunks {
         peak: PeakChunk {
             version: 1,
@@ -229,7 +244,7 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
         },
         cue: CueChunk {
             cue_points: vec![CuePoint {
-                id: [0, 0, 0, 0],
+                id: [b's', b'f', b'i', b'f'],  // CDP uses "sfif" as cue point ID
                 position: 0,
                 data_chunk_id: *b"data",
                 chunk_start: 0,
@@ -238,7 +253,7 @@ fn create_cdp_chunks(peak_value: f32, peak_position: u32, _frame_count: u32) -> 
             }],
         },
         list: ListChunk {
-            note_data: b"CDP Release 7.1 2016".to_vec(),
+            note_data,
         },
     }
 }
@@ -255,13 +270,20 @@ fn write_wav_cdp_internal<W: Write>(
     let fmt_chunk_size = 16;
     let peak_chunk_size = 16; // 4 * 4 bytes
     let cue_chunk_size = 28; // 4 + 24 for one cue point
-    let list_chunk_size = 4 + 8 + cdp_chunks.list.note_data.len(); // "adtl" + "note" header + data
+    
+    // LIST chunk needs padding if note_data length is odd
+    let note_data_padded_len = if cdp_chunks.list.note_data.len() % 2 != 0 {
+        cdp_chunks.list.note_data.len() + 1
+    } else {
+        cdp_chunks.list.note_data.len()
+    };
+    let list_chunk_size = 4 + 4 + 4 + cdp_chunks.list.note_data.len(); // "adtl" + "note" + note_size + data (not padded)
 
     let riff_size = 4 + // "WAVE"
         8 + fmt_chunk_size +
         8 + peak_chunk_size +
         8 + cue_chunk_size +
-        8 + list_chunk_size +
+        8 + list_chunk_size + (note_data_padded_len - cdp_chunks.list.note_data.len()) +
         8 + data_size;
 
     // Write RIFF header
@@ -307,6 +329,11 @@ fn write_wav_cdp_internal<W: Write>(
     writer.write_all(b"note")?;
     writer.write_all(&(cdp_chunks.list.note_data.len() as u32).to_le_bytes())?;
     writer.write_all(&cdp_chunks.list.note_data)?;
+    
+    // Add padding if note_data length is odd
+    if cdp_chunks.list.note_data.len() % 2 != 0 {
+        writer.write_all(&[0u8])?;
+    }
 
     // Write data chunk
     writer.write_all(b"data")?;
