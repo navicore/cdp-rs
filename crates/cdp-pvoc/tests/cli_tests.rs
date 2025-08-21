@@ -1,9 +1,11 @@
 //! Tests to ensure CLI compatibility with CDP pvoc
 
+use serial_test::serial;
 use std::process::Command;
 
 /// Test that our pvoc binary exists and runs
 #[test]
+#[serial]
 fn test_pvoc_binary_exists() {
     let output = Command::new("cargo")
         .args(["run", "--bin", "pvoc", "--", "--help"])
@@ -20,6 +22,7 @@ fn test_pvoc_binary_exists() {
 
 /// Test that pvoc without arguments shows correct usage
 #[test]
+#[serial]
 fn test_pvoc_no_args_shows_usage() {
     let output = Command::new("cargo")
         .args(["run", "--bin", "pvoc"])
@@ -34,6 +37,7 @@ fn test_pvoc_no_args_shows_usage() {
 
 /// Test that pvoc anal without arguments shows correct help
 #[test]
+#[serial]
 fn test_pvoc_anal_help() {
     let output = Command::new("cargo")
         .args(["run", "--bin", "pvoc", "--", "anal"])
@@ -52,6 +56,7 @@ fn test_pvoc_anal_help() {
 
 /// Test that pvoc synth without arguments shows correct help
 #[test]
+#[serial]
 fn test_pvoc_synth_help() {
     let output = Command::new("cargo")
         .args(["run", "--bin", "pvoc", "--", "synth"])
@@ -65,6 +70,7 @@ fn test_pvoc_synth_help() {
 
 /// Test that pvoc extract without arguments shows correct help
 #[test]
+#[serial]
 fn test_pvoc_extract_help() {
     let output = Command::new("cargo")
         .args(["run", "--bin", "pvoc", "--", "extract"])
@@ -78,6 +84,7 @@ fn test_pvoc_extract_help() {
 
 /// Test that invalid mode is rejected
 #[test]
+#[serial]
 fn test_pvoc_anal_invalid_mode() {
     let output = Command::new("cargo")
         .args([
@@ -93,6 +100,7 @@ fn test_pvoc_anal_invalid_mode() {
 
 /// Test that invalid channel count is rejected
 #[test]
+#[serial]
 fn test_pvoc_anal_invalid_channels() {
     let output = Command::new("cargo")
         .args([
@@ -108,6 +116,7 @@ fn test_pvoc_anal_invalid_channels() {
 
 /// Test that valid channel counts are accepted (even if analysis fails)
 #[test]
+#[serial]
 fn test_pvoc_anal_valid_channels() {
     // These should parse correctly even if the analysis fails
     for channels in &[

@@ -33,10 +33,10 @@
   - [x] Time window control
   - [x] Oracle test against CDP blur
 
-- [ ] **stretch time** - Time stretching
-  - [ ] Phase vocoder time manipulation
-  - [ ] Pitch preservation
-  - [ ] Oracle test
+- [x] **stretch time** - Time stretching ✅
+  - [x] Phase vocoder time manipulation
+  - [x] Pitch preservation
+  - [x] Oracle test
 
 - [ ] **modify pitch** - Pitch shifting
   - [ ] Frequency bin shifting

@@ -8,6 +8,8 @@
 
 pub mod blur;
 pub mod error;
+pub mod stretch;
 
 pub use blur::{blur, blur_varying};
 pub use error::{Result, SpectralError};
+pub use stretch::{calculate_output_duration, stretch_time, stretch_time_varying};

@@ -19,3 +19,7 @@ tempfile = { workspace = true }
 [[bin]]
 name = "blur"
 path = "src/bin/blur.rs"
+
+[[bin]]
+name = "stretch"
+path = "src/bin/stretch.rs"
