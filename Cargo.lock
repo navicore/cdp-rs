@@ -180,7 +180,10 @@ dependencies = [
  "cdp-core",
  "cdp-oracle",
  "cdp-pvoc",
+ "hound",
  "num-complex",
+ "tempfile",
+ "thiserror",
 ]
 
 [[package]]

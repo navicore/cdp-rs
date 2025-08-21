@@ -6,32 +6,32 @@
 - [x] **cdp-modify**: Audio modifications (gain, normalize)
 - [x] **cdp-sndinfo**: File analysis and properties
 
-## Priority 1: Phase Vocoder (Foundation for spectral processing)
+## Priority 1: Phase Vocoder (Foundation for spectral processing) ✅
 ### cdp-pvoc module
-- [ ] **pvoc anal** - Convert soundfile to frequency domain
-  - [ ] Basic FFT analysis
-  - [ ] Window overlap handling
-  - [ ] Phase tracking
-  - [ ] Write .ana file format
-  - [ ] Oracle test against CDP pvoc anal
+- [x] **pvoc anal** - Convert soundfile to frequency domain
+  - [x] Basic FFT analysis
+  - [x] Window overlap handling
+  - [x] Phase tracking
+  - [x] Write .ana file format
+  - [x] Oracle test against CDP pvoc anal
   
-- [ ] **pvoc synth** - Convert frequency domain back to audio
-  - [ ] IFFT synthesis
-  - [ ] Phase reconstruction
-  - [ ] Overlap-add
-  - [ ] Oracle test against CDP pvoc synth
+- [x] **pvoc synth** - Convert frequency domain back to audio
+  - [x] IFFT synthesis
+  - [x] Phase reconstruction
+  - [x] Overlap-add
+  - [x] Oracle test against CDP pvoc synth
 
-- [ ] **pvoc extract** - Extract frequency band
-  - [ ] Frequency bin selection
-  - [ ] Amplitude/phase preservation
-  - [ ] Oracle test
+- [x] **pvoc extract** - Extract frequency band
+  - [x] Frequency bin selection
+  - [x] Amplitude/phase preservation
+  - [x] Oracle test
 
 ## Priority 2: Essential Spectral Processors
 ### cdp-spectral expansion
-- [ ] **blur blur** - Spectral blurring
-  - [ ] Frequency smearing algorithm
-  - [ ] Time window control
-  - [ ] Oracle test against CDP blur
+- [x] **blur blur** - Spectral blurring ✅
+  - [x] Frequency smearing algorithm
+  - [x] Time window control
+  - [x] Oracle test against CDP blur
 
 - [ ] **stretch time** - Time stretching
   - [ ] Phase vocoder time manipulation
