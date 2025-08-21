@@ -9,6 +9,13 @@ license.workspace = true
 cdp-core = { path = "../cdp-core" }
 cdp-pvoc = { path = "../cdp-pvoc" }
 num-complex = { workspace = true }
+hound = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 cdp-oracle = { path = "../cdp-oracle" }
+tempfile = { workspace = true }
+
+[[bin]]
+name = "blur"
+path = "src/bin/blur.rs"

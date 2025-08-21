@@ -1,7 +1,7 @@
 .PHONY: all build test clean lint fmt fmt-check check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private build-cdp install-cdp test-cdp clean-cdp cdp-env install-deps profile coverage size audit
 
 # Default target
-all: fmt-check lint build test oracle-local
+all: fmt-check lint build test release oracle-local
 
 # Help target
 help:
