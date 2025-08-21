@@ -90,4 +90,19 @@ fi
 # Clean up
 rm -f rust_stereo_c1.wav cdp_stereo_c1.wav
 
+# Test 3: pvoc anal (when implemented)
+# Uncomment when pvoc anal is working
+# echo "Testing: pvoc anal..."
+# rm -f rust.ana cdp.ana
+# ../target/release/pvoc anal 1 input.wav rust.ana -c1024 -o3
+# ../build/cdp/NewRelease/pvoc anal 1 input.wav cdp.ana -c1024 -o3 > /dev/null 2>&1
+# 
+# if python3 ../scripts/oracle-compare.py rust.ana cdp.ana; then
+#     echo "✓ pvoc anal: PASSED"
+# else
+#     echo "✗ pvoc anal: FAILED"
+#     exit 1
+# fi
+# rm -f rust.ana cdp.ana
+
 echo "=== All Oracle Tests Passed ==="

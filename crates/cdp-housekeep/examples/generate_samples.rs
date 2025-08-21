@@ -10,8 +10,11 @@ use std::path::Path;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Generating sample audio files for examples...\n");
 
-    // Generate files in current directory
-    println!("Generating files in current directory...");
+    // Create examples directory if it doesn't exist
+    let examples_dir = Path::new("crates/cdp-housekeep/examples");
+    std::fs::create_dir_all(examples_dir)?;
+
+    println!("Generating files in crates/cdp-housekeep/examples/...");
 
     // Generate stereo test tone (440Hz left, 880Hz right)
     generate_stereo_tone()?;
@@ -28,17 +31,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate quiet signal (for normalization demo)
     generate_quiet_signal()?;
 
-    println!("\n✓ All sample files generated in current directory");
+    println!("\n✓ All sample files generated in crates/cdp-housekeep/examples/");
     println!("\nYou can now run the other examples:");
     println!("  cargo run -p cdp-modify --example audio_processing");
     println!("  cargo run -p cdp-modify --example batch_normalize");
     println!("  cargo run -p cdp-housekeep --example channel_extract");
+    println!("  cargo run -p cdp-pvoc --example spectral_analysis");
 
     Ok(())
 }
 
 fn generate_stereo_tone() -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new("stereo_tone.wav");
+    let path = Path::new("crates/cdp-housekeep/examples/stereo_tone.wav");
     let sample_rate = 44100;
     let duration = 2.0;
     let num_samples = (sample_rate as f32 * duration) as usize;
@@ -66,7 +70,7 @@ fn generate_stereo_tone() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_mono_sine() -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new("mono_sine.wav");
+    let path = Path::new("crates/cdp-housekeep/examples/mono_sine.wav");
     let sample_rate = 44100;
     let duration = 1.0;
     let frequency = 440.0;
@@ -92,7 +96,7 @@ fn generate_mono_sine() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_white_noise() -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new("white_noise.wav");
+    let path = Path::new("crates/cdp-housekeep/examples/white_noise.wav");
     let sample_rate = 44100;
     let duration = 1.0;
     let num_samples = (sample_rate as f32 * duration) as usize;
@@ -120,7 +124,7 @@ fn generate_white_noise() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_chirp() -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new("chirp.wav");
+    let path = Path::new("crates/cdp-housekeep/examples/chirp.wav");
     let sample_rate = 44100;
     let duration = 2.0;
     let start_freq = 100.0;
@@ -149,7 +153,7 @@ fn generate_chirp() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_quiet_signal() -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new("quiet_sine.wav");
+    let path = Path::new("crates/cdp-housekeep/examples/quiet_sine.wav");
     let sample_rate = 44100;
     let duration = 1.0;
     let frequency = 440.0;
