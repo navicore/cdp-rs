@@ -13,8 +13,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("CDP-RS Channel Extraction Example\n");
     println!("==================================\n");
 
-    // Input stereo file (in current directory)
-    let stereo_file = Path::new("stereo_tone.wav");
+    // Input stereo file (in examples directory)
+    let stereo_file = Path::new("crates/cdp-housekeep/examples/stereo_tone.wav");
 
     // Check if sample file exists
     if !stereo_file.exists() {
@@ -34,26 +34,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. Extract left channel (440Hz)
     println!("1. Extracting left channel (440Hz tone):");
-    let left_output = Path::new("stereo_tone_left.wav");
+    let left_output = Path::new("crates/cdp-housekeep/examples/stereo_tone_left.wav");
     chans::extract_channel_to(stereo_file, 1, left_output)?;
     println!("   ✓ Created: {}", left_output.display());
 
     // 2. Extract right channel (880Hz)
     println!("\n2. Extracting right channel (880Hz tone):");
-    let right_output = Path::new("stereo_tone_right.wav");
+    let right_output = Path::new("crates/cdp-housekeep/examples/stereo_tone_right.wav");
     chans::extract_channel_to(stereo_file, 2, right_output)?;
     println!("   ✓ Created: {}", right_output.display());
 
     // 3. Mix to mono (sum both channels)
     println!("\n3. Creating mono mix (sum of both channels):");
-    let mono_output = Path::new("stereo_tone_mono_mix.wav");
+    let mono_output = Path::new("crates/cdp-housekeep/examples/stereo_tone_mono_mix.wav");
     chans::mix_to_mono(stereo_file, mono_output, false)?;
     println!("   ✓ Created: {}", mono_output.display());
     println!("   (Contains both 440Hz and 880Hz)");
 
     // 4. Mix with phase inversion (difference)
     println!("\n4. Creating difference signal (L - R):");
-    let diff_output = Path::new("stereo_tone_difference.wav");
+    let diff_output = Path::new("crates/cdp-housekeep/examples/stereo_tone_difference.wav");
     chans::mix_to_mono(stereo_file, diff_output, true)?;
     println!("   ✓ Created: {}", diff_output.display());
     println!("   (Subtracts right from left channel)");
