@@ -274,6 +274,207 @@ fn compare_ana_files(file1: &Path, file2: &Path) -> bool {
     true
 }
 
+/// Test stretch against CDP
+#[test]
+#[ignore]
+fn test_stretch_matches_cdp() {
+    let temp_dir = TempDir::new().unwrap();
+    let input_wav = temp_dir.path().join("input.wav");
+    let ana_file = temp_dir.path().join("input.ana");
+    let our_stretch = temp_dir.path().join("our_stretch.ana");
+    let cdp_stretch = temp_dir.path().join("cdp_stretch.ana");
+
+    // Generate test input
+    Command::new("cargo")
+        .args([
+            "run",
+            "-p",
+            "cdp-housekeep",
+            "--example",
+            "generate_samples",
+        ])
+        .output()
+        .expect("Failed to generate samples");
+
+    let sample_path = Path::new("crates/cdp-housekeep/examples/sine_tone.wav");
+    if !sample_path.exists() {
+        eprintln!("Sample file not found, skipping oracle test");
+        return;
+    }
+
+    fs::copy(sample_path, &input_wav).expect("Failed to copy sample");
+
+    // Convert to .ana using CDP pvoc
+    let cdp_pvoc = Command::new("build/cdp-install/bin/pvoc")
+        .args([
+            "anal",
+            "1",
+            input_wav.to_str().unwrap(),
+            ana_file.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run CDP pvoc");
+
+    if !cdp_pvoc.status.success() {
+        eprintln!("CDP pvoc failed, skipping oracle test");
+        return;
+    }
+
+    // Run our stretch
+    let our_result = Command::new("cargo")
+        .args([
+            "run",
+            "--bin",
+            "stretch",
+            "--",
+            "time",
+            "1",
+            ana_file.to_str().unwrap(),
+            our_stretch.to_str().unwrap(),
+            "2.0",
+        ])
+        .output()
+        .expect("Failed to run our stretch");
+
+    assert!(our_result.status.success(), "Our stretch failed");
+
+    // Run CDP stretch
+    let cdp_result = Command::new("build/cdp-install/bin/stretch")
+        .args([
+            "time",
+            "1",
+            ana_file.to_str().unwrap(),
+            cdp_stretch.to_str().unwrap(),
+            "2.0",
+        ])
+        .output()
+        .expect("Failed to run CDP stretch");
+
+    assert!(cdp_result.status.success(), "CDP stretch failed");
+
+    // Compare outputs - stretch will have different phase accumulation,
+    // so we can only check that sizes are similar
+    let our_size = fs::metadata(&our_stretch).unwrap().len();
+    let cdp_size = fs::metadata(&cdp_stretch).unwrap().len();
+
+    // Sizes should be within 10% for same stretch factor
+    let size_ratio = our_size as f64 / cdp_size as f64;
+    assert!(
+        size_ratio > 0.9 && size_ratio < 1.1,
+        "Output sizes differ significantly: {} vs {}",
+        our_size,
+        cdp_size
+    );
+}
+
+/// Test stretch with various factors against CDP
+#[test]
+#[ignore]
+fn test_stretch_factors_oracle() {
+    let temp_dir = TempDir::new().unwrap();
+    let input_wav = temp_dir.path().join("input.wav");
+    let ana_file = temp_dir.path().join("input.ana");
+
+    // Generate test input
+    Command::new("cargo")
+        .args([
+            "run",
+            "-p",
+            "cdp-housekeep",
+            "--example",
+            "generate_samples",
+        ])
+        .output()
+        .expect("Failed to generate samples");
+
+    let sample_path = Path::new("crates/cdp-housekeep/examples/sine_tone.wav");
+    if !sample_path.exists() {
+        eprintln!("Sample file not found, skipping oracle test");
+        return;
+    }
+
+    fs::copy(sample_path, &input_wav).expect("Failed to copy sample");
+
+    // Convert to .ana
+    let cdp_pvoc = Command::new("build/cdp-install/bin/pvoc")
+        .args([
+            "anal",
+            "1",
+            input_wav.to_str().unwrap(),
+            ana_file.to_str().unwrap(),
+        ])
+        .output()
+        .expect("Failed to run CDP pvoc");
+
+    if !cdp_pvoc.status.success() {
+        eprintln!("CDP pvoc failed, skipping oracle test");
+        return;
+    }
+
+    // Test various stretch factors
+    for stretch_factor in &[0.5, 1.0, 1.5, 2.0, 3.0] {
+        let our_stretch = temp_dir
+            .path()
+            .join(format!("our_stretch_{}.ana", stretch_factor));
+        let cdp_stretch = temp_dir
+            .path()
+            .join(format!("cdp_stretch_{}.ana", stretch_factor));
+
+        // Run our stretch
+        let our_result = Command::new("cargo")
+            .args([
+                "run",
+                "--bin",
+                "stretch",
+                "--",
+                "time",
+                "1",
+                ana_file.to_str().unwrap(),
+                our_stretch.to_str().unwrap(),
+                &stretch_factor.to_string(),
+            ])
+            .output()
+            .expect("Failed to run our stretch");
+
+        assert!(
+            our_result.status.success(),
+            "Our stretch failed with factor {}",
+            stretch_factor
+        );
+
+        // Run CDP stretch
+        let cdp_result = Command::new("build/cdp-install/bin/stretch")
+            .args([
+                "time",
+                "1",
+                ana_file.to_str().unwrap(),
+                cdp_stretch.to_str().unwrap(),
+                &stretch_factor.to_string(),
+            ])
+            .output()
+            .expect("Failed to run CDP stretch");
+
+        assert!(
+            cdp_result.status.success(),
+            "CDP stretch failed with factor {}",
+            stretch_factor
+        );
+
+        // Check sizes are similar
+        let our_size = fs::metadata(&our_stretch).unwrap().len();
+        let cdp_size = fs::metadata(&cdp_stretch).unwrap().len();
+        let size_ratio = our_size as f64 / cdp_size as f64;
+
+        assert!(
+            size_ratio > 0.9 && size_ratio < 1.1,
+            "Stretch factor {}: sizes differ significantly: {} vs {}",
+            stretch_factor,
+            our_size,
+            cdp_size
+        );
+    }
+}
+
 /// Helper function to find a chunk in WAV file
 fn find_chunk(buffer: &[u8], chunk_id: &[u8; 4]) -> Option<usize> {
     (0..buffer.len() - 4).find(|&i| &buffer[i..i + 4] == chunk_id)
