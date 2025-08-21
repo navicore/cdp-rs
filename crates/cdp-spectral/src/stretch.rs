@@ -12,7 +12,7 @@ use std::path::Path;
 ///
 /// # Arguments
 /// * `input_path` - Path to input .ana file
-/// * `output_path` - Path to output .ana file  
+/// * `output_path` - Path to output .ana file
 /// * `stretch_factor` - Time stretch factor (>1 = slower, <1 = faster)
 ///
 /// # Returns
@@ -26,7 +26,7 @@ pub fn stretch_time(input_path: &Path, output_path: &Path, stretch_factor: f64) 
         ));
     }
 
-    if stretch_factor < 0.01 || stretch_factor > 100.0 {
+    if !(0.01..=100.0).contains(&stretch_factor) {
         return Err(SpectralError::InvalidInput(
             "Stretch factor must be between 0.01 and 100".to_string(),
         ));
