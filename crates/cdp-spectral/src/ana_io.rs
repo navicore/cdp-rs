@@ -121,6 +121,13 @@ pub fn read_ana_file(path: &Path) -> Result<(AnaHeader, Vec<f32>)> {
         }
     }
 
+    // Validate that we have the required metadata
+    if ana_header.window_len == 0 || ana_header.channels == 0 {
+        return Err(SpectralError::InvalidInput(
+            "Missing or invalid analysis metadata".to_string(),
+        ));
+    }
+
     // Read spectral data
     reader.seek(SeekFrom::Start(data_offset))?;
     let num_samples = data_size / 4; // 4 bytes per float
@@ -130,6 +137,21 @@ pub fn read_ana_file(path: &Path) -> Result<(AnaHeader, Vec<f32>)> {
         let mut bytes = [0u8; 4];
         reader.read_exact(&mut bytes)?;
         samples.push(f32::from_le_bytes(bytes));
+    }
+
+    // Validate spectral data format (should be interleaved real/imaginary pairs)
+    if samples.len() % 2 != 0 {
+        return Err(SpectralError::InvalidInput(
+            "Spectral data must contain real/imaginary pairs".to_string(),
+        ));
+    }
+
+    // Validate that channels matches expected spectral format
+    let expected_window_size = ana_header.channels as usize;
+    if samples.len() % expected_window_size != 0 {
+        return Err(SpectralError::InvalidInput(
+            "Data size doesn't match channel count".to_string(),
+        ));
     }
 
     Ok((ana_header, samples))
@@ -143,6 +165,8 @@ pub fn write_ana_file(path: &Path, header: &AnaHeader, samples: &[f32]) -> Resul
     let data_size = (samples.len() * 4) as u32;
 
     // Create metadata
+    let hop_size = header.window_len / header.dec_factor;
+    let arate = header.sample_rate as f32 / hop_size as f32;
     let metadata = format!(
         "original sampsize: 16\n\
          original sample rate: {}\n\
@@ -152,7 +176,7 @@ pub fn write_ana_file(path: &Path, header: &AnaHeader, samples: &[f32]) -> Resul
          origrate: {}\n\
          DATE: CDP Phase Vocoder Analysis\n",
         header.sample_rate,
-        header.sample_rate as f32 / (header.window_len / header.dec_factor) as f32,
+        arate,
         header.window_len,
         header.dec_factor,
         header.sample_rate

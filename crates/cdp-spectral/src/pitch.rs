@@ -18,13 +18,7 @@ use std::path::Path;
 /// * `Err(SpectralError)` on failure
 pub fn pitch_shift(input_path: &Path, output_path: &Path, shift_factor: f64) -> Result<()> {
     // Validate shift factor
-    if shift_factor <= 0.0 {
-        return Err(SpectralError::InvalidInput(
-            "Shift factor must be greater than 0".to_string(),
-        ));
-    }
-
-    if !(0.1..=10.0).contains(&shift_factor) {
+    if shift_factor <= 0.0 || !(0.1..=10.0).contains(&shift_factor) {
         return Err(SpectralError::InvalidInput(
             "Shift factor must be between 0.1 and 10".to_string(),
         ));
@@ -65,6 +59,24 @@ pub fn pitch_shift(input_path: &Path, output_path: &Path, shift_factor: f64) -> 
                 // Add to destination (allows overlapping bins)
                 output[dst_idx] += src_real;
                 output[dst_idx + 1] += src_imag;
+            }
+        }
+
+        // Normalize to prevent clipping from overlapping bins
+        let mut max_magnitude = 0.0f32;
+        for bin in 0..num_bins {
+            let real = output[window_start + bin * 2];
+            let imag = output[window_start + bin * 2 + 1];
+            let magnitude = (real * real + imag * imag).sqrt();
+            max_magnitude = max_magnitude.max(magnitude);
+        }
+
+        // Apply normalization if needed
+        if max_magnitude > 1.0 {
+            let scale = 0.95 / max_magnitude; // Scale to 95% to prevent clipping
+            for bin in 0..num_bins {
+                output[window_start + bin * 2] *= scale;
+                output[window_start + bin * 2 + 1] *= scale;
             }
         }
     }
@@ -136,10 +148,16 @@ pub fn pitch_shift_formant(
                 let src_mag = (src_real * src_real + src_imag * src_imag).sqrt();
                 let src_phase = src_imag.atan2(src_real);
 
-                // Apply original envelope at new position
-                let new_mag = if src_mag > 0.0 { envelope[bin] } else { 0.0 };
+                // For formant preservation: keep original envelope magnitude ratios
+                // Apply the envelope characteristic from the original position
+                let envelope_factor = if envelope[src_bin] > 0.0 {
+                    envelope[bin] / envelope[src_bin]
+                } else {
+                    1.0
+                };
+                let new_mag = src_mag * envelope_factor;
 
-                // Convert back to rectangular
+                // Convert back to rectangular using source phase
                 output[window_start + bin * 2] = new_mag * src_phase.cos();
                 output[window_start + bin * 2 + 1] = new_mag * src_phase.sin();
             }
