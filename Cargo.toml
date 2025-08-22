@@ -4,6 +4,7 @@ members = [
     "crates/cdp-core",
     "crates/cdp-pvoc", 
     "crates/cdp-spectral",
+    "crates/cdp-distort",
     "crates/cdp-housekeep",
     "crates/cdp-modify",
     "crates/cdp-sndinfo",
