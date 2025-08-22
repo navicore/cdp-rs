@@ -61,11 +61,22 @@ pub fn overload(
             .into_samples::<f32>()
             .collect::<std::result::Result<Vec<_>, _>>()?,
         SampleFormat::Int => {
+            // Prevent integer overflow for large bit depths
+            if spec.bits_per_sample >= 32 {
+                return Err(DistortError::InvalidInput(
+                    "Bit depth too large for safe processing".to_string(),
+                ));
+            }
             let max_val = (1 << (spec.bits_per_sample - 1)) as f32;
             reader
                 .into_samples::<i32>()
                 .map(|s| s.map(|sample| sample as f32 / max_val))
                 .collect::<std::result::Result<Vec<_>, _>>()?
+        }
+        _ => {
+            return Err(DistortError::InvalidInput(
+                "Unsupported sample format".to_string(),
+            ));
         }
     };
 
@@ -84,8 +95,13 @@ pub fn overload(
             ClipType::Asymmetric => asymmetric_clip(driven, threshold),
         };
 
-        // Output gain compensation
-        let result = clipped / drive.sqrt();
+        // Output gain compensation - prevent division by zero
+        let drive_sqrt = drive.sqrt();
+        let result = if drive_sqrt > f32::EPSILON {
+            clipped / drive_sqrt
+        } else {
+            clipped
+        };
         output.push(result);
     }
 
@@ -142,7 +158,12 @@ fn tube_saturate(sample: f32, threshold: f32) -> f32 {
     } else {
         // Above threshold - smooth compression
         let sign = scaled.signum();
-        let compressed = 1.0 - (1.0 / (1.0 + scaled.abs() - 1.0));
+        let denominator = 1.0 + scaled.abs() - 1.0;
+        let compressed = if denominator > f32::EPSILON {
+            1.0 - (1.0 / denominator)
+        } else {
+            0.99 // Safe fallback value
+        };
         sign * threshold * compressed
     }
 }

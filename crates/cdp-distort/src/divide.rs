@@ -41,11 +41,22 @@ pub fn divide(input_path: &Path, output_path: &Path, divide_factor: u32, mix: f3
             .into_samples::<f32>()
             .collect::<std::result::Result<Vec<_>, _>>()?,
         SampleFormat::Int => {
+            // Prevent integer overflow for large bit depths
+            if spec.bits_per_sample >= 32 {
+                return Err(DistortError::InvalidInput(
+                    "Bit depth too large for safe processing".to_string(),
+                ));
+            }
             let max_val = (1 << (spec.bits_per_sample - 1)) as f32;
             reader
                 .into_samples::<i32>()
                 .map(|s| s.map(|sample| sample as f32 / max_val))
                 .collect::<std::result::Result<Vec<_>, _>>()?
+        }
+        _ => {
+            return Err(DistortError::InvalidInput(
+                "Unsupported sample format".to_string(),
+            ));
         }
     };
 
@@ -55,8 +66,8 @@ pub fn divide(input_path: &Path, output_path: &Path, divide_factor: u32, mix: f3
     let mut sub_counter = 0;
 
     for sample in samples.iter() {
-        // Detect zero crossings for phase reset
-        if last_sample.signum() != sample.signum() && sample.abs() > 0.01 {
+        // Detect zero crossings for phase reset - use a more sensitive threshold
+        if last_sample.signum() != sample.signum() && sample.abs() > 0.001 {
             sub_counter = (sub_counter + 1) % divide_factor;
         }
 
