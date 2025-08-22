@@ -22,6 +22,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate mono sine wave
     generate_mono_sine()?;
 
+    // Generate sine tone (for spectral examples)
+    generate_sine_tone()?;
+
+    // Generate sawtooth tone (harmonic-rich for spectral processing)
+    generate_sawtooth_tone()?;
+
+    // Generate complex tone (multiple harmonics)
+    generate_complex_tone()?;
+
     // Generate white noise
     generate_white_noise()?;
 
@@ -149,6 +158,91 @@ fn generate_chirp() -> Result<(), Box<dyn std::error::Error>> {
 
     wav_cdp::write_wav_cdp(path, &format, &samples)?;
     println!("  Created: chirp.wav (100Hz to 2000Hz sweep, 2 seconds)");
+    Ok(())
+}
+
+fn generate_sine_tone() -> Result<(), Box<dyn std::error::Error>> {
+    let path = Path::new("crates/cdp-housekeep/examples/sine_tone.wav");
+    let sample_rate = 44100;
+    let duration = 2.0;
+    let frequency = 440.0;
+    let num_samples = (sample_rate as f32 * duration) as usize;
+
+    let mut samples = Vec::new();
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate as f32;
+        let sample = (2.0 * PI * frequency * t).sin() * 0.8;
+        samples.push((sample * 32767.0) as i16);
+    }
+
+    let format = WavFormat {
+        channels: 1,
+        sample_rate,
+        bits_per_sample: 16,
+        data_size: (samples.len() * 2) as u32,
+    };
+
+    wav_cdp::write_wav_cdp(path, &format, &samples)?;
+    println!("  Created: sine_tone.wav (440Hz, 2 seconds)");
+    Ok(())
+}
+
+fn generate_sawtooth_tone() -> Result<(), Box<dyn std::error::Error>> {
+    let path = Path::new("crates/cdp-housekeep/examples/sawtooth_tone.wav");
+    let sample_rate = 44100;
+    let duration = 2.0;
+    let frequency = 220.0; // Lower frequency for better harmonics
+    let num_samples = (sample_rate as f32 * duration) as usize;
+
+    let mut samples = Vec::new();
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate as f32;
+        // Sawtooth wave: ramp from -1 to 1
+        let phase = (frequency * t) % 1.0;
+        let sample = (2.0 * phase - 1.0) * 0.6;
+        samples.push((sample * 32767.0) as i16);
+    }
+
+    let format = WavFormat {
+        channels: 1,
+        sample_rate,
+        bits_per_sample: 16,
+        data_size: (samples.len() * 2) as u32,
+    };
+
+    wav_cdp::write_wav_cdp(path, &format, &samples)?;
+    println!("  Created: sawtooth_tone.wav (220Hz sawtooth, 2 seconds)");
+    Ok(())
+}
+
+fn generate_complex_tone() -> Result<(), Box<dyn std::error::Error>> {
+    let path = Path::new("crates/cdp-housekeep/examples/complex_tone.wav");
+    let sample_rate = 44100;
+    let duration = 2.0;
+    let fundamental = 220.0;
+    let num_samples = (sample_rate as f32 * duration) as usize;
+
+    let mut samples = Vec::new();
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate as f32;
+        // Mix of harmonics to create complex tone
+        let mut sample = 0.0;
+        sample += (2.0 * PI * fundamental * t).sin() * 0.5; // Fundamental
+        sample += (2.0 * PI * fundamental * 2.0 * t).sin() * 0.3; // 2nd harmonic
+        sample += (2.0 * PI * fundamental * 3.0 * t).sin() * 0.2; // 3rd harmonic
+        sample += (2.0 * PI * fundamental * 5.0 * t).sin() * 0.1; // 5th harmonic
+        samples.push((sample * 32767.0) as i16);
+    }
+
+    let format = WavFormat {
+        channels: 1,
+        sample_rate,
+        bits_per_sample: 16,
+        data_size: (samples.len() * 2) as u32,
+    };
+
+    wav_cdp::write_wav_cdp(path, &format, &samples)?;
+    println!("  Created: complex_tone.wav (220Hz with harmonics, 2 seconds)");
     Ok(())
 }
 

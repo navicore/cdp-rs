@@ -2,10 +2,8 @@
 //!
 //! Time-averages the spectrum across multiple windows to create a blurred effect.
 
+use crate::ana_io::{read_ana_file, write_ana_file};
 use crate::error::{Result, SpectralError};
-use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
-use std::fs::File;
-use std::io::BufReader;
 use std::path::Path;
 
 /// Time-average the spectrum across multiple windows
@@ -35,26 +33,11 @@ pub fn blur(input_path: &Path, output_path: &Path, blur_windows: u32) -> Result<
 
     let blur_span = blur_windows / 2; // Number of windows on each side
 
-    // Open input .ana file
-    let file = File::open(input_path)?;
-    let reader = BufReader::new(file);
-    let mut wav_reader = WavReader::new(reader)?;
-    let spec = wav_reader.spec();
-
-    // Verify it's an IEEE float WAV (CDP .ana format)
-    if spec.sample_format != SampleFormat::Float || spec.bits_per_sample != 32 {
-        return Err(SpectralError::InvalidInput(
-            "Input must be IEEE float WAV (.ana file)".to_string(),
-        ));
-    }
-
-    // Read all samples into memory
-    let samples: Vec<f32> = wav_reader
-        .samples::<f32>()
-        .collect::<std::result::Result<Vec<_>, _>>()?;
+    // Read input .ana file
+    let (header, samples) = read_ana_file(input_path)?;
 
     // Calculate window size (samples per window)
-    let window_size = spec.channels as usize;
+    let window_size = header.channels as usize;
     let num_windows = samples.len() / window_size;
 
     if num_windows == 0 {
@@ -93,18 +76,7 @@ pub fn blur(input_path: &Path, output_path: &Path, blur_windows: u32) -> Result<
     }
 
     // Write output .ana file
-    let output_spec = WavSpec {
-        channels: spec.channels,
-        sample_rate: spec.sample_rate,
-        bits_per_sample: 32,
-        sample_format: SampleFormat::Float,
-    };
-
-    let mut writer = WavWriter::create(output_path, output_spec)?;
-    for sample in output {
-        writer.write_sample(sample)?;
-    }
-    writer.finalize()?;
+    write_ana_file(output_path, &header, &output)?;
 
     Ok(())
 }
@@ -130,29 +102,14 @@ pub fn blur_varying(
         ));
     }
 
-    // Open input .ana file
-    let file = File::open(input_path)?;
-    let reader = BufReader::new(file);
-    let mut wav_reader = WavReader::new(reader)?;
-    let spec = wav_reader.spec();
+    // Read input .ana file
+    let (header, samples) = read_ana_file(input_path)?;
 
-    // Verify it's an IEEE float WAV
-    if spec.sample_format != SampleFormat::Float || spec.bits_per_sample != 32 {
-        return Err(SpectralError::InvalidInput(
-            "Input must be IEEE float WAV (.ana file)".to_string(),
-        ));
-    }
-
-    // Read all samples
-    let samples: Vec<f32> = wav_reader
-        .samples::<f32>()
-        .collect::<std::result::Result<Vec<_>, _>>()?;
-
-    let window_size = spec.channels as usize;
+    let window_size = header.channels as usize;
     let num_windows = samples.len() / window_size;
 
     // Calculate time per window (assuming standard overlap)
-    let time_per_window = 1.0 / (spec.sample_rate as f64 / 256.0); // Typical hop size
+    let time_per_window = 1.0 / (header.sample_rate as f64 / 256.0); // Typical hop size
 
     // Allocate output buffer
     let mut output = Vec::with_capacity(samples.len());
@@ -195,18 +152,7 @@ pub fn blur_varying(
     }
 
     // Write output
-    let output_spec = WavSpec {
-        channels: spec.channels,
-        sample_rate: spec.sample_rate,
-        bits_per_sample: 32,
-        sample_format: SampleFormat::Float,
-    };
-
-    let mut writer = WavWriter::create(output_path, output_spec)?;
-    for sample in output {
-        writer.write_sample(sample)?;
-    }
-    writer.finalize()?;
+    write_ana_file(output_path, &header, &output)?;
 
     Ok(())
 }

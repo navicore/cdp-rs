@@ -38,10 +38,10 @@
   - [x] Pitch preservation
   - [x] Oracle test
 
-- [ ] **modify pitch** - Pitch shifting
-  - [ ] Frequency bin shifting
-  - [ ] Formant correction option
-  - [ ] Oracle test
+- [x] **modify pitch** - Pitch shifting ✅
+  - [x] Frequency bin shifting
+  - [x] Formant correction option
+  - [x] Tests and examples
 
 ## Priority 3: Distortion & Effects
 ### cdp-distort module (new)
