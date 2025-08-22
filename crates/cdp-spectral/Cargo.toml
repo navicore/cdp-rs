@@ -23,3 +23,7 @@ path = "src/bin/blur.rs"
 [[bin]]
 name = "stretch"
 path = "src/bin/stretch.rs"
+
+[[bin]]
+name = "pitch"
+path = "src/bin/pitch.rs"

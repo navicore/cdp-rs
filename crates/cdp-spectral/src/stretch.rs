@@ -2,10 +2,8 @@
 //!
 //! Stretches or compresses time without changing pitch.
 
+use crate::ana_io::{read_ana_file, write_ana_file};
 use crate::error::{Result, SpectralError};
-use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
-use std::fs::File;
-use std::io::BufReader;
 use std::path::Path;
 
 /// Time-stretch a spectral file
@@ -32,26 +30,11 @@ pub fn stretch_time(input_path: &Path, output_path: &Path, stretch_factor: f64) 
         ));
     }
 
-    // Open input .ana file
-    let file = File::open(input_path)?;
-    let reader = BufReader::new(file);
-    let mut wav_reader = WavReader::new(reader)?;
-    let spec = wav_reader.spec();
-
-    // Verify it's an IEEE float WAV (CDP .ana format)
-    if spec.sample_format != SampleFormat::Float || spec.bits_per_sample != 32 {
-        return Err(SpectralError::InvalidInput(
-            "Input must be IEEE float WAV (.ana file)".to_string(),
-        ));
-    }
-
-    // Read all samples into memory
-    let samples: Vec<f32> = wav_reader
-        .samples::<f32>()
-        .collect::<std::result::Result<Vec<_>, _>>()?;
+    // Read input .ana file
+    let (header, samples) = read_ana_file(input_path)?;
 
     // Calculate window size (samples per window)
-    let window_size = spec.channels as usize;
+    let window_size = header.channels as usize;
     let num_windows = samples.len() / window_size;
 
     if num_windows == 0 {
@@ -113,18 +96,7 @@ pub fn stretch_time(input_path: &Path, output_path: &Path, stretch_factor: f64) 
     }
 
     // Write output .ana file
-    let output_spec = WavSpec {
-        channels: spec.channels,
-        sample_rate: spec.sample_rate,
-        bits_per_sample: 32,
-        sample_format: SampleFormat::Float,
-    };
-
-    let mut writer = WavWriter::create(output_path, output_spec)?;
-    for sample in output {
-        writer.write_sample(sample)?;
-    }
-    writer.finalize()?;
+    write_ana_file(output_path, &header, &output)?;
 
     Ok(())
 }
@@ -159,29 +131,15 @@ pub fn stretch_time_varying(
         }
     }
 
-    // Open input .ana file
-    let file = File::open(input_path)?;
-    let reader = BufReader::new(file);
-    let mut wav_reader = WavReader::new(reader)?;
-    let spec = wav_reader.spec();
+    // Read input .ana file
+    let (header, samples) = read_ana_file(input_path)?;
 
-    // Verify format
-    if spec.sample_format != SampleFormat::Float || spec.bits_per_sample != 32 {
-        return Err(SpectralError::InvalidInput(
-            "Input must be IEEE float WAV (.ana file)".to_string(),
-        ));
-    }
-
-    // Read all samples
-    let samples: Vec<f32> = wav_reader
-        .samples::<f32>()
-        .collect::<std::result::Result<Vec<_>, _>>()?;
-
-    let window_size = spec.channels as usize;
+    let window_size = header.channels as usize;
     let num_windows = samples.len() / window_size;
 
-    // Calculate time per window
-    let time_per_window = 1.0 / (spec.sample_rate as f64 / 256.0);
+    // Calculate time per window from header metadata
+    let hop_size = header.window_len / header.dec_factor;
+    let time_per_window = hop_size as f64 / header.sample_rate as f64;
 
     // Calculate total output windows needed
     let mut output_windows = 0;
@@ -250,18 +208,7 @@ pub fn stretch_time_varying(
     }
 
     // Write output
-    let output_spec = WavSpec {
-        channels: spec.channels,
-        sample_rate: spec.sample_rate,
-        bits_per_sample: 32,
-        sample_format: SampleFormat::Float,
-    };
-
-    let mut writer = WavWriter::create(output_path, output_spec)?;
-    for sample in output {
-        writer.write_sample(sample)?;
-    }
-    writer.finalize()?;
+    write_ana_file(output_path, &header, &output)?;
 
     Ok(())
 }
@@ -269,13 +216,10 @@ pub fn stretch_time_varying(
 /// Calculate output duration for a given stretch
 pub fn calculate_output_duration(input_path: &Path, stretch_factor: f64) -> Result<f64> {
     // Open input to get duration
-    let file = File::open(input_path)?;
-    let reader = BufReader::new(file);
-    let wav_reader = WavReader::new(reader)?;
-    let spec = wav_reader.spec();
+    let (header, samples) = read_ana_file(input_path)?;
 
-    let num_samples = wav_reader.duration() as f64;
-    let duration = num_samples / spec.sample_rate as f64;
+    let num_samples = samples.len() as f64;
+    let duration = num_samples / header.sample_rate as f64;
 
     Ok(duration * stretch_factor)
 }
