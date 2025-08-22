@@ -175,11 +175,7 @@ pub fn write_ana_file(path: &Path, header: &AnaHeader, samples: &[f32]) -> Resul
          decfactor: {}\n\
          origrate: {}\n\
          DATE: CDP Phase Vocoder Analysis\n",
-        header.sample_rate,
-        arate,
-        header.window_len,
-        header.dec_factor,
-        header.sample_rate
+        header.sample_rate, arate, header.window_len, header.dec_factor, header.sample_rate
     );
 
     let list_data = metadata.as_bytes();
