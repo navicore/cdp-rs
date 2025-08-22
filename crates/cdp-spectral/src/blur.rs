@@ -108,8 +108,9 @@ pub fn blur_varying(
     let window_size = header.channels as usize;
     let num_windows = samples.len() / window_size;
 
-    // Calculate time per window (assuming standard overlap)
-    let time_per_window = 1.0 / (header.sample_rate as f64 / 256.0); // Typical hop size
+    // Calculate time per window from header metadata
+    let hop_size = header.window_len / header.dec_factor;
+    let time_per_window = hop_size as f64 / header.sample_rate as f64;
 
     // Allocate output buffer
     let mut output = Vec::with_capacity(samples.len());

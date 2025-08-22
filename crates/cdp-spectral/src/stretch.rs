@@ -137,8 +137,9 @@ pub fn stretch_time_varying(
     let window_size = header.channels as usize;
     let num_windows = samples.len() / window_size;
 
-    // Calculate time per window
-    let time_per_window = 1.0 / (header.sample_rate as f64 / 256.0);
+    // Calculate time per window from header metadata
+    let hop_size = header.window_len / header.dec_factor;
+    let time_per_window = hop_size as f64 / header.sample_rate as f64;
 
     // Calculate total output windows needed
     let mut output_windows = 0;
