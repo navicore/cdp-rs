@@ -105,4 +105,33 @@ rm -f rust_stereo_c1.wav cdp_stereo_c1.wav
 # fi
 # rm -f rust.ana cdp.ana
 
+# Test: distort multiply (when implemented)
+# Uncomment when distort is working
+# echo "Testing: distort multiply..."
+# rm -f rust_output.wav cdp_output.wav
+# ../target/release/distort multiply input.wav rust_output.wav -f 2.0
+# ../build/cdp/NewRelease/distort multiply input.wav cdp_output.wav 2 > /dev/null 2>&1
+# 
+# if python3 ../scripts/oracle-compare.py rust_output.wav cdp_output.wav; then
+#     echo "✓ distort multiply: PASSED"
+# else
+#     echo "✗ distort multiply: FAILED"
+#     exit 1
+# fi
+# rm -f rust_output.wav cdp_output.wav
+
+# Test: distort divide (when implemented)
+# echo "Testing: distort divide..."
+# rm -f rust_output.wav cdp_output.wav
+# ../target/release/distort divide input.wav rust_output.wav -f 2
+# ../build/cdp/NewRelease/distort divide input.wav cdp_output.wav 2 > /dev/null 2>&1
+# 
+# if python3 ../scripts/oracle-compare.py rust_output.wav cdp_output.wav; then
+#     echo "✓ distort divide: PASSED"
+# else
+#     echo "✗ distort divide: FAILED"
+#     exit 1
+# fi
+# rm -f rust_output.wav cdp_output.wav
+
 echo "=== All Oracle Tests Passed ==="
