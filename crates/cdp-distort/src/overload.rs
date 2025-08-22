@@ -73,11 +73,6 @@ pub fn overload(
                 .map(|s| s.map(|sample| sample as f32 / max_val))
                 .collect::<std::result::Result<Vec<_>, _>>()?
         }
-        _ => {
-            return Err(DistortError::InvalidInput(
-                "Unsupported sample format".to_string(),
-            ));
-        }
     };
 
     // Process samples
