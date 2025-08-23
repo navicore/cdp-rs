@@ -12,6 +12,7 @@ use thiserror::Error;
 pub mod audio;
 pub mod generator;
 pub mod validator;
+pub mod test_utils;
 
 pub use generator::TestGenerator;
 pub use validator::{ValidationResult, Validator};

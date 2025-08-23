@@ -4,9 +4,9 @@
 //! Run with: cargo test --package cdp-distort oracle -- --ignored
 
 use cdp_distort::{divide, multiply, overload, ClipType};
+use cdp_oracle::test_utils::cdp_command;
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
 use std::path::Path;
-use std::process::Command;
 use tempfile::tempdir;
 
 /// Create a test WAV file
@@ -89,7 +89,7 @@ fn test_multiply_matches_cdp() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort multiply
-    let cdp_result = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "multiply",
             input_path.to_str().unwrap(),
@@ -122,7 +122,7 @@ fn test_divide_matches_cdp() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort divide
-    let cdp_result = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "divide",
             input_path.to_str().unwrap(),
@@ -155,7 +155,7 @@ fn test_overload_matches_cdp() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort overload
-    let cdp_result = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "overload",
             "1", // mode 1 = clipping
@@ -189,7 +189,7 @@ fn test_multiply_with_mix() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort multiply with prescale (similar to mix)
-    let cdp_result = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "multiply",
             input_path.to_str().unwrap(),
@@ -224,7 +224,7 @@ fn test_distort_chain() {
     create_test_wav(&input_path).unwrap();
 
     // CDP chain: multiply then overload
-    let cdp_result1 = Command::new("distort")
+    let cdp_result1 = cdp_command("distort")
         .args([
             "multiply",
             input_path.to_str().unwrap(),
@@ -236,7 +236,7 @@ fn test_distort_chain() {
 
     assert!(cdp_result1.status.success(), "CDP distort multiply in chain failed");
 
-    let cdp_result2 = Command::new("distort")
+    let cdp_result2 = cdp_command("distort")
         .args([
             "overload",
             "2", // mode 2 = soft clip

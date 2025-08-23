@@ -1,5 +1,6 @@
 //! Oracle tests comparing our implementation against CDP
 
+use cdp_oracle::test_utils::cdp_command;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -36,7 +37,7 @@ fn test_pvoc_anal_matches_cdp() {
     assert!(our_result.status.success(), "Our pvoc failed");
 
     // Run CDP pvoc
-    let cdp_result = Command::new("build/cdp-install/bin/pvoc")
+    let cdp_result = cdp_command("pvoc")
         .args([
             "anal",
             "1",
