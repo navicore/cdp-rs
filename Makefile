@@ -55,13 +55,16 @@ test-passing:
 	@cargo test --package cdp-oracle test_utils
 	@echo "All passing tests completed successfully!"
 
+test-status:
+	@./scripts/mark-tests.sh status
+
 test-oracle:
-	@echo "Running oracle tests (expect failures until implementation is complete)..."
-	@cargo test --package cdp-distort oracle_tests || true
-	@cargo test --package cdp-housekeep test_basic_copy || true
-	@cargo test --package cdp-pvoc oracle_tests || true
-	@cargo test --package cdp-pvoc format_tests || true
-	@cargo test --package cdp-spectral oracle_tests || true
+	@echo "Running oracle tests (including ignored ones)..."
+	@cargo test --package cdp-distort oracle_tests -- --ignored || true
+	@cargo test --package cdp-housekeep test_basic_copy -- --ignored || true
+	@cargo test --package cdp-pvoc oracle_tests -- --ignored || true
+	@cargo test --package cdp-pvoc format_tests -- --ignored || true
+	@cargo test --package cdp-spectral oracle_tests -- --ignored || true
 	@echo "Oracle test run complete (failures are expected)"
 
 test-verbose:
