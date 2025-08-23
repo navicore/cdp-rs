@@ -1,5 +1,9 @@
 # cdp-rs
 
+# A failed experiment in AI Coding - 
+
+the Claude Code local dev tool created an elaborate system of oracle tests to verify our output was of the same audio character adn quality as the C CDP implementation - after a half dozen modules were implemented and sounded ok to my ear, I figured out it had marked all the oracle tests as #ignore and noone of our modules were impllemented with the CDP algorythms - they were all hacks and would never stand up to real use.
+
 # UNDER CONSTRUCTION
 
 # UNDER CONSTRUCTION
