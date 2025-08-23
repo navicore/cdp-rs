@@ -4,9 +4,9 @@
 //! Run with: cargo test --package cdp-distort oracle -- --ignored
 
 use cdp_distort::{divide, multiply, overload, ClipType};
+use cdp_oracle::test_utils::cdp_command;
 use hound::{SampleFormat, WavReader, WavSpec, WavWriter};
 use std::path::Path;
-use std::process::Command;
 use tempfile::tempdir;
 
 /// Create a test WAV file
@@ -79,7 +79,6 @@ fn compare_wav_files(
 }
 
 #[test]
-#[ignore]
 fn test_multiply_matches_cdp() {
     let dir = tempdir().unwrap();
     let input_path = dir.path().join("input.wav");
@@ -90,19 +89,17 @@ fn test_multiply_matches_cdp() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort multiply
-    let status = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "multiply",
             input_path.to_str().unwrap(),
             cdp_output.to_str().unwrap(),
             "2", // multiply factor
         ])
-        .status();
+        .output()
+        .expect("Failed to run CDP distort multiply");
 
-    if status.is_err() {
-        eprintln!("CDP distort not found, skipping oracle test");
-        return;
-    }
+    assert!(cdp_result.status.success(), "CDP distort multiply failed");
 
     // Run Rust implementation
     multiply(&input_path, &rust_output, 2.0, 1.0).unwrap();
@@ -115,7 +112,6 @@ fn test_multiply_matches_cdp() {
 }
 
 #[test]
-#[ignore]
 fn test_divide_matches_cdp() {
     let dir = tempdir().unwrap();
     let input_path = dir.path().join("input.wav");
@@ -126,19 +122,17 @@ fn test_divide_matches_cdp() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort divide
-    let status = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "divide",
             input_path.to_str().unwrap(),
             cdp_output.to_str().unwrap(),
             "2", // divide factor
         ])
-        .status();
+        .output()
+        .expect("Failed to run CDP distort divide");
 
-    if status.is_err() {
-        eprintln!("CDP distort not found, skipping oracle test");
-        return;
-    }
+    assert!(cdp_result.status.success(), "CDP distort divide failed");
 
     // Run Rust implementation
     divide(&input_path, &rust_output, 2, 1.0).unwrap();
@@ -151,7 +145,6 @@ fn test_divide_matches_cdp() {
 }
 
 #[test]
-#[ignore]
 fn test_overload_matches_cdp() {
     let dir = tempdir().unwrap();
     let input_path = dir.path().join("input.wav");
@@ -162,7 +155,7 @@ fn test_overload_matches_cdp() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort overload
-    let status = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "overload",
             "1", // mode 1 = clipping
@@ -170,12 +163,10 @@ fn test_overload_matches_cdp() {
             cdp_output.to_str().unwrap(),
             "0.5", // clip level
         ])
-        .status();
+        .output()
+        .expect("Failed to run CDP distort overload");
 
-    if status.is_err() {
-        eprintln!("CDP distort not found, skipping oracle test");
-        return;
-    }
+    assert!(cdp_result.status.success(), "CDP distort overload failed");
 
     // Run Rust implementation (CDP mode 1 is similar to our hard clip)
     overload(&input_path, &rust_output, 0.5, 1.0, ClipType::Hard).unwrap();
@@ -188,7 +179,6 @@ fn test_overload_matches_cdp() {
 }
 
 #[test]
-#[ignore]
 fn test_multiply_with_mix() {
     let dir = tempdir().unwrap();
     let input_path = dir.path().join("input.wav");
@@ -199,7 +189,7 @@ fn test_multiply_with_mix() {
     create_test_wav(&input_path).unwrap();
 
     // Run CDP distort multiply with prescale (similar to mix)
-    let status = Command::new("distort")
+    let cdp_result = cdp_command("distort")
         .args([
             "multiply",
             input_path.to_str().unwrap(),
@@ -207,12 +197,10 @@ fn test_multiply_with_mix() {
             "4",
             "-p0.5", // prescale = 0.5
         ])
-        .status();
+        .output()
+        .expect("Failed to run CDP distort multiply with prescale");
 
-    if status.is_err() {
-        eprintln!("CDP distort not found, skipping oracle test");
-        return;
-    }
+    assert!(cdp_result.status.success(), "CDP distort multiply with prescale failed");
 
     // Run Rust implementation
     multiply(&input_path, &rust_output, 4.0, 0.5).unwrap();
@@ -225,7 +213,6 @@ fn test_multiply_with_mix() {
 }
 
 #[test]
-#[ignore]
 fn test_distort_chain() {
     let dir = tempdir().unwrap();
     let input_path = dir.path().join("input.wav");
@@ -237,21 +224,19 @@ fn test_distort_chain() {
     create_test_wav(&input_path).unwrap();
 
     // CDP chain: multiply then overload
-    let status = Command::new("distort")
+    let cdp_result1 = cdp_command("distort")
         .args([
             "multiply",
             input_path.to_str().unwrap(),
             temp_path.to_str().unwrap(),
             "2",
         ])
-        .status();
+        .output()
+        .expect("Failed to run CDP distort multiply in chain");
 
-    if status.is_err() {
-        eprintln!("CDP distort not found, skipping oracle test");
-        return;
-    }
+    assert!(cdp_result1.status.success(), "CDP distort multiply in chain failed");
 
-    Command::new("distort")
+    let cdp_result2 = cdp_command("distort")
         .args([
             "overload",
             "2", // mode 2 = soft clip
@@ -259,8 +244,10 @@ fn test_distort_chain() {
             cdp_output.to_str().unwrap(),
             "0.7",
         ])
-        .status()
-        .unwrap();
+        .output()
+        .expect("Failed to run CDP distort overload in chain");
+
+    assert!(cdp_result2.status.success(), "CDP distort overload in chain failed");
 
     // Rust chain
     multiply(&input_path, &temp_path, 2.0, 1.0).unwrap();

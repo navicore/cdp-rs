@@ -1,5 +1,6 @@
 //! Oracle tests comparing our implementation against CDP
 
+use cdp_oracle::test_utils::cdp_command;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -7,7 +8,6 @@ use tempfile::TempDir;
 
 /// Compare our pvoc anal output with CDP's
 #[test]
-#[ignore] // Enable when pvoc_anal is implemented
 fn test_pvoc_anal_matches_cdp() {
     let temp_dir = TempDir::new().unwrap();
     let input_wav = temp_dir.path().join("input.wav");
@@ -37,7 +37,7 @@ fn test_pvoc_anal_matches_cdp() {
     assert!(our_result.status.success(), "Our pvoc failed");
 
     // Run CDP pvoc
-    let cdp_result = Command::new("build/cdp-install/bin/pvoc")
+    let cdp_result = cdp_command("pvoc")
         .args([
             "anal",
             "1",
@@ -118,7 +118,6 @@ fn test_pvoc_roundtrip() {
 
 /// Test that our pvoc handles various FFT sizes correctly
 #[test]
-#[ignore] // Enable when pvoc_anal is implemented
 fn test_pvoc_anal_fft_sizes() {
     let temp_dir = TempDir::new().unwrap();
     let input_wav = temp_dir.path().join("input.wav");
@@ -154,7 +153,6 @@ fn test_pvoc_anal_fft_sizes() {
 
 /// Test different overlap factors
 #[test]
-#[ignore] // Enable when pvoc_anal is implemented
 fn test_pvoc_anal_overlap_factors() {
     let temp_dir = TempDir::new().unwrap();
     let input_wav = temp_dir.path().join("input.wav");
