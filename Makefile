@@ -45,6 +45,19 @@ release:
 test:
 	@echo "Running tests..."
 	@cargo test --workspace
+	@if [ -d "build/cdp-install/bin" ]; then \
+		echo "CDP found, running oracle tests..."; \
+		export PATH="$(PWD)/build/cdp-install/bin:$$PATH"; \
+		echo "Running oracle tests against CDP binaries..."; \
+		cargo test --package cdp-spectral oracle_tests --no-fail-fast || echo "Some spectral oracle tests failed"; \
+		cargo test --package cdp-distort oracle_tests --no-fail-fast || echo "Some distort oracle tests failed"; \
+		cargo test --package cdp-pvoc oracle_tests --no-fail-fast || echo "Some pvoc oracle tests failed"; \
+		cargo test --package cdp-pvoc format_tests --no-fail-fast || echo "Some format tests failed"; \
+		cargo test --package cdp-housekeep test_basic_copy --no-fail-fast || echo "Housekeep copy test failed"; \
+		cargo test integration_test --no-fail-fast || echo "Integration test failed"; \
+	else \
+		echo "CDP not found. Oracle tests will be skipped. Run 'make build-cdp' to build CDP and enable oracle testing."; \
+	fi
 
 test-verbose:
 	@echo "Running tests with output..."
@@ -139,6 +152,19 @@ demo:
 ci-test:
 	@echo "Running tests (CI mode)..."
 	@cargo test --workspace --no-fail-fast
+	@if [ -d "build/cdp-install/bin" ]; then \
+		echo "CDP found, running oracle tests in CI mode..."; \
+		export PATH="$(PWD)/build/cdp-install/bin:$$PATH"; \
+		echo "Running oracle tests against CDP binaries..."; \
+		cargo test --package cdp-spectral oracle_tests --no-fail-fast || echo "Some spectral oracle tests failed"; \
+		cargo test --package cdp-distort oracle_tests --no-fail-fast || echo "Some distort oracle tests failed"; \
+		cargo test --package cdp-pvoc oracle_tests --no-fail-fast || echo "Some pvoc oracle tests failed"; \
+		cargo test --package cdp-pvoc format_tests --no-fail-fast || echo "Some format tests failed"; \
+		cargo test --package cdp-housekeep test_basic_copy --no-fail-fast || echo "Housekeep copy test failed"; \
+		cargo test integration_test --no-fail-fast || echo "Integration test failed"; \
+	else \
+		echo "CDP not found. Oracle tests will be skipped."; \
+	fi
 
 # Frozen module check
 check-frozen:

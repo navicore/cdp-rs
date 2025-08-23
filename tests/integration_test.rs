@@ -6,7 +6,6 @@ mod tests {
     use cdp_sandbox::experiments::ExperimentalPvoc;
     
     #[test]
-    #[ignore] // Remove when CDP binaries are available
     fn test_pvoc_validation() {
         let config = OracleConfig::default();
         let validator = Validator::new(config).unwrap();

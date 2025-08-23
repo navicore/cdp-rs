@@ -41,7 +41,6 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    #[ignore] // Test requires proper WAV file generation
     fn test_basic_copy() {
         // This test needs a real WAV file, not a dummy one
         // For now, just test that the function exists and compiles
