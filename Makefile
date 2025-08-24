@@ -1,7 +1,17 @@
 .PHONY: all build test clean lint fmt fmt-check check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private build-cdp install-cdp test-cdp clean-cdp cdp-env install-deps profile coverage size audit
 
-# Default target
-all: fmt-check lint build test release oracle-local
+# Check for CDP installation first
+check-cdp:
+	@if [ ! -d "build/cdp-install/bin" ] || [ ! -f "build/cdp-install/bin/housekeep" ]; then \
+		echo "ERROR: CDP is not installed!"; \
+		echo "CDP is REQUIRED for all operations."; \
+		echo "Run 'make install-cdp' to install CDP first."; \
+		exit 1; \
+	fi
+	@echo "✓ CDP is installed"
+
+# Default target - ALWAYS check for CDP first
+all: check-cdp fmt-check lint build test release oracle-local
 
 # Help target
 help:
@@ -33,16 +43,16 @@ help:
 	@echo "make demo       - Run the oracle demo"
 
 # Build commands
-build:
+build: check-cdp
 	@echo "Building all packages..."
 	@cargo build --workspace
 
-release:
+release: check-cdp
 	@echo "Building release version..."
 	@cargo build --workspace --release
 
 # Testing commands
-test:
+test: check-cdp
 	@echo "Running tests..."
 	@cargo test --workspace
 
@@ -156,8 +166,8 @@ demo:
 	@echo "Running oracle demo..."
 	@cargo run --bin oracle_demo
 
-# CI test command
-ci-test:
+# CI test command - CDP is MANDATORY
+ci-test: check-cdp
 	@echo "Running tests (CI mode)..."
 	@cargo test --workspace --no-fail-fast
 
