@@ -153,6 +153,8 @@ dependencies = [
 name = "cdp-housekeep"
 version = "0.1.0"
 dependencies = [
+ "cdp-oracle",
+ "hound",
  "tempfile",
  "thiserror",
 ]

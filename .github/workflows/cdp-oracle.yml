@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-      fail-fast: false  # Continue if one OS fails
+      fail-fast: true  # FAIL FAST - stop all jobs if any fail
     
     steps:
     - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
         ls -1 build/cdp-install/bin | wc -l
         echo ""
         echo "Testing housekeep:"
-        build/cdp-install/bin/housekeep 2>&1 | head -1 || true
+        build/cdp-install/bin/housekeep 2>&1 | head -1
     
     - name: Upload CDP binaries
       uses: actions/upload-artifact@v4
@@ -81,7 +81,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-      fail-fast: false
+      fail-fast: true  # FAIL FAST - stop all jobs if any fail
     
     steps:
     - uses: actions/checkout@v4
@@ -104,7 +104,7 @@ jobs:
       run: |
         chmod +x scripts/test-cdp.sh
         chmod +x scripts/generate-test-audio.py
-        ./scripts/test-cdp.sh || true  # Don't fail on test errors initially
+        ./scripts/test-cdp.sh  # FAIL FAST on any test error
     
     - name: Upload test outputs
       if: always()
@@ -123,7 +123,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-      fail-fast: false
+      fail-fast: true  # FAIL FAST - stop all jobs if any fail
     
     steps:
     - uses: actions/checkout@v4
@@ -213,7 +213,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-      fail-fast: false
+      fail-fast: true  # FAIL FAST - stop all jobs if any fail
     
     steps:
     - uses: actions/checkout@v4

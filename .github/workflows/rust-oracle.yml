@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-      fail-fast: false
+      fail-fast: true  # Stop all jobs if any fail
     
     steps:
     - uses: actions/checkout@v4

@@ -32,10 +32,22 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Check formatting
-      run: make fmt-check
+      run: cargo fmt --all -- --check
     
     - name: Run clippy
-      run: make ci-lint
+      run: |
+        cargo clippy --workspace --all-targets --all-features -- \
+          -D warnings \
+          -W clippy::all \
+          -W clippy::correctness \
+          -W clippy::suspicious \
+          -W clippy::complexity \
+          -W clippy::perf \
+          -W clippy::style \
+          -A clippy::missing_errors_doc \
+          -A clippy::missing_panics_doc \
+          -A clippy::must_use_candidate \
+          -A clippy::module_name_repetitions
 
   test:
     name: Test
@@ -44,8 +56,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git python3
+    
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache CDP build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/cdp
+          build/cdp-install
+        key: ${{ runner.os }}-cdp-${{ hashFiles('scripts/build-cdp.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-cdp-
     
     - name: Cache dependencies
       uses: actions/cache@v4
@@ -56,8 +83,11 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Run tests
-      run: make ci-test
+    - name: Run make clean and full build
+      run: |
+        make clean
+        make install-cdp
+        make
     
     - name: Upload test artifacts
       if: failure()
@@ -96,7 +126,6 @@ jobs:
     name: Oracle Validation
     runs-on: ubuntu-latest
     needs: [test, check-frozen-modules]
-    continue-on-error: true  # Don't fail the build if oracle tests fail
     
     steps:
     - uses: actions/checkout@v4
@@ -104,7 +133,10 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake git
+        sudo apt-get install -y build-essential cmake git python3
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
     
     - name: Cache CDP build
       uses: actions/cache@v4
@@ -116,14 +148,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cdp-
     
-    - name: Build CDP from source
-      run: |
-        chmod +x scripts/build-cdp.sh
-        make build-cdp || echo "CDP build failed - skipping oracle tests"
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
@@ -133,15 +157,10 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Run oracle validation tests
+    - name: Run oracle tests using make
       run: |
-        if [ -d "build/cdp-install/bin" ]; then
-          chmod +x scripts/test-cdp-ci.sh
-          ./scripts/test-cdp-ci.sh || echo "Some CDP tests failed"
-          # Future: cargo test --package cdp-oracle --features integration-tests
-        else
-          echo "CDP not available - skipping oracle tests"
-        fi
+        make install-cdp
+        make oracle-local
 
   benchmark:
     name: Benchmark
@@ -151,8 +170,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git python3
+    
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache CDP build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/cdp
+          build/cdp-install
+        key: ${{ runner.os }}-cdp-${{ hashFiles('scripts/build-cdp.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-cdp-
     
     - name: Cache dependencies
       uses: actions/cache@v4
@@ -164,7 +198,9 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Run benchmarks
-      run: make bench
+      run: |
+        make install-cdp
+        make bench
     
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
@@ -176,19 +212,35 @@ jobs:
     name: Code Coverage
     runs-on: ubuntu-latest
     needs: test
-    continue-on-error: true
     
     steps:
     - uses: actions/checkout@v4
     
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git python3
+    
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache CDP build
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/cdp
+          build/cdp-install
+        key: ${{ runner.os }}-cdp-${{ hashFiles('scripts/build-cdp.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-cdp-
     
     - name: Install tarpaulin
       run: cargo install cargo-tarpaulin
     
     - name: Generate coverage
-      run: make coverage || echo "Coverage generation failed"
+      run: |
+        make install-cdp
+        make coverage
     
     - name: Upload coverage
       uses: actions/upload-artifact@v4

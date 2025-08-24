@@ -37,36 +37,30 @@ pub fn copy(input: &Path, output: &Path) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
     use tempfile::TempDir;
 
     #[test]
-    #[ignore] // TODO: Enable when module is implemented
     fn test_basic_copy() {
-        // This test needs a real WAV file, not a dummy one
-        // For now, just test that the function exists and compiles
-        // Real testing is done via oracle tests against CDP
+        use hound::{WavSpec, WavWriter};
+
         let temp_dir = TempDir::new().unwrap();
         let input = temp_dir.path().join("input.wav");
         let output = temp_dir.path().join("output.wav");
 
-        // Create a minimal valid WAV file (44 byte header + empty data)
-        let wav_data = vec![
-            b'R', b'I', b'F', b'F', // "RIFF"
-            36, 0, 0, 0, // File size - 8
-            b'W', b'A', b'V', b'E', // "WAVE"
-            b'f', b'm', b't', b' ', // "fmt "
-            16, 0, 0, 0, // fmt chunk size
-            1, 0, // PCM format
-            1, 0, // Mono
-            0x44, 0xAC, 0, 0, // 44100 Hz
-            0x88, 0x58, 0x01, 0, // Byte rate
-            2, 0, // Block align
-            16, 0, // 16 bits per sample
-            b'd', b'a', b't', b'a', // "data"
-            0, 0, 0, 0, // Data size = 0
-        ];
-        fs::write(&input, &wav_data).unwrap();
+        // Create a proper WAV file with actual audio data
+        let spec = WavSpec {
+            channels: 1,
+            sample_rate: 44100,
+            bits_per_sample: 16,
+            sample_format: hound::SampleFormat::Int,
+        };
+
+        let mut writer = WavWriter::create(&input, spec).unwrap();
+        // Write 100 samples of silence
+        for _ in 0..100 {
+            writer.write_sample(0i16).unwrap();
+        }
+        writer.finalize().unwrap();
 
         // Try to copy the file
         let result = copy(&input, &output);
@@ -75,9 +69,13 @@ mod tests {
         if let Err(e) = &result {
             eprintln!("Copy error: {:?}", e);
         }
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "Copy should succeed");
 
         // Verify output file was created
-        assert!(output.exists());
+        assert!(output.exists(), "Output file should exist");
+
+        // Verify it's a valid WAV file
+        let reader = hound::WavReader::open(&output);
+        assert!(reader.is_ok(), "Output should be a valid WAV file");
     }
 }

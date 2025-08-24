@@ -18,7 +18,7 @@
 | Module | Program | Status | Oracle Tests | Notes |
 |--------|---------|--------|--------------|-------|
 | **cdp-housekeep** | | | | |
-| | copy | 🔴 | 0/1 failing | Need CDP WAV format with PEAK chunks |
+| | copy | 🟢 | 3/3 passing | CDP WAV format with PEAK chunks implemented! |
 | | chans | 🔴 | Not written | Channel extraction/mixing |
 | **cdp-modify** | | | | |
 | | loudness | 🔴 | Not written | Gain, normalize, balance |

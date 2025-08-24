@@ -1,8 +1,10 @@
 #!/bin/bash
 # Lightweight CDP test suite for CI environments
-# Focuses on binary operations without audio playback
+# FAIL FAST - Any test failure stops everything
 
-set -e
+set -e  # Exit immediately on any error
+set -u  # Exit on undefined variables
+set -o pipefail  # Exit on pipe failures
 
 # Setup paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,113 +46,59 @@ fi
 
 echo "Generated test.wav: $(ls -lh test.wav | awk '{print $5}')"
 
-# Run core CDP operations
+# Run core CDP operations - FAIL FAST on any error
 echo ""
 echo "Testing core CDP operations..."
 
-PASSED=0
-FAILED=0
-
 # Test 1: housekeep copy
 echo -n "  housekeep copy... "
-if $CDP_BIN/housekeep copy 1 test.wav copy.wav 2>/dev/null; then
-    echo "PASS"
-    ((PASSED++))
-else
-    echo "FAIL"
-    ((FAILED++))
-fi
+$CDP_BIN/housekeep copy 1 test.wav copy.wav
+echo "PASS"
 
 # Test 2: modify speed
 echo -n "  modify speed... "
-if $CDP_BIN/modify speed 1 test.wav slow.wav 0.5 2>/dev/null; then
-    echo "PASS"
-    ((PASSED++))
-else
-    echo "FAIL"
-    ((FAILED++))
-fi
+$CDP_BIN/modify speed 1 test.wav slow.wav 0.5
+echo "PASS"
 
 # Test 3: pvoc analysis
 echo -n "  pvoc anal... "
-if $CDP_BIN/pvoc anal 1 test.wav test.ana 2>/dev/null; then
-    echo "PASS"
-    ((PASSED++))
-else
-    echo "FAIL"
-    ((FAILED++))
-fi
+$CDP_BIN/pvoc anal 1 test.wav test.ana
+echo "PASS"
 
-# Test 4: blur if analysis succeeded
-if [ -f "test.ana" ]; then
-    echo -n "  blur avrg... "
-    if $CDP_BIN/blur avrg test.ana blur.ana 10 2>/dev/null; then
-        echo "PASS"
-        ((PASSED++))
-    else
-        echo "FAIL"
-        ((FAILED++))
-    fi
-    
-    # Test 5: pvoc synthesis
-    echo -n "  pvoc synth... "
-    if $CDP_BIN/pvoc synth test.ana resynth.wav 2>/dev/null; then
-        echo "PASS"
-        ((PASSED++))
-    else
-        echo "FAIL"
-        ((FAILED++))
-    fi
-fi
+# Test 4: blur
+echo -n "  blur avrg... "
+$CDP_BIN/blur avrg test.ana blur.ana 10
+echo "PASS"
+
+# Test 5: pvoc synthesis
+echo -n "  pvoc synth... "
+$CDP_BIN/pvoc synth test.ana resynth.wav
+echo "PASS"
 
 # Test 6: filter
 echo -n "  filter lohi... "
-if $CDP_BIN/filter lohi 1 test.wav filtered.wav -96 200 2000 -s1 2>/dev/null; then
-    echo "PASS"
-    ((PASSED++))
-else
-    echo "FAIL"
-    ((FAILED++))
-fi
+$CDP_BIN/filter lohi 1 test.wav filtered.wav -96 200 2000 -s1
+echo "PASS"
 
 # Test 7: distort
 echo -n "  distort multiply... "
-if $CDP_BIN/distort multiply test.wav distorted.wav 2 2>/dev/null; then
-    echo "PASS"
-    ((PASSED++))
-else
-    echo "FAIL"
-    ((FAILED++))
-fi
+$CDP_BIN/distort multiply test.wav distorted.wav 2
+echo "PASS"
 
 # Test 8: extend
 echo -n "  extend zigzag... "
-if $CDP_BIN/extend zigzag 1 test.wav zigzag.wav 0.1 1.9 3 0.2 2>/dev/null; then
-    echo "PASS"
-    ((PASSED++))
-else
-    echo "FAIL"
-    ((FAILED++))
-fi
+$CDP_BIN/extend zigzag 1 test.wav zigzag.wav 0.1 1.9 3 0.2
+echo "PASS"
 
-# Summary
+# If we got here, everything passed
 echo ""
 echo "========================================="
-echo "Test Results: $PASSED passed, $FAILED failed"
+echo "All CDP tests passed!"
 echo "========================================="
 
 # List generated files
 echo ""
 echo "Generated files:"
-ls -lh *.wav *.ana 2>/dev/null | head -20 || echo "No files generated"
+ls -lh *.wav *.ana 2>/dev/null | head -20
 
-# Exit with appropriate code
-if [ $FAILED -gt 0 ]; then
-    echo ""
-    echo "Some tests failed, but CDP is partially working"
-    exit 1
-else
-    echo ""
-    echo "All tests passed!"
-    exit 0
-fi
+exit 0

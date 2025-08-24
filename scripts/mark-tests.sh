@@ -35,10 +35,10 @@ get_test_files() {
             echo "crates/cdp-housekeep/src/copy.rs"
             ;;
         "cdp-pvoc")
-            echo "crates/cdp-pvoc/tests/oracle_tests.rs crates/cdp-pvoc/tests/format_tests.rs"
+            echo "crates/cdp-pvoc/tests/oracle_tests.rs crates/cdp-pvoc/tests/format_tests.rs crates/cdp-pvoc/tests/cli_tests.rs"
             ;;
         "cdp-spectral")
-            echo "crates/cdp-spectral/tests/oracle_tests.rs"
+            echo "crates/cdp-spectral/tests/oracle_tests.rs crates/cdp-spectral/tests/blur_tests.rs crates/cdp-spectral/tests/stretch_tests.rs crates/cdp-spectral/tests/pitch_tests.rs"
             ;;
         *)
             echo ""
