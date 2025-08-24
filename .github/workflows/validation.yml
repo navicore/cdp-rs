@@ -59,7 +59,10 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake git
+        sudo apt-get install -y build-essential cmake git python3
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
     
     - name: Cache CDP build
       uses: actions/cache@v4
@@ -71,14 +74,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cdp-
     
-    - name: Build CDP from source (REQUIRED)
-      run: |
-        chmod +x scripts/build-cdp.sh
-        make build-cdp
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
@@ -88,8 +83,11 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Run tests
-      run: make ci-test
+    - name: Run make clean and full build
+      run: |
+        make clean
+        make install-cdp
+        make
     
     - name: Upload test artifacts
       if: failure()
@@ -135,7 +133,10 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake git
+        sudo apt-get install -y build-essential cmake git python3
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
     
     - name: Cache CDP build
       uses: actions/cache@v4
@@ -147,14 +148,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cdp-
     
-    - name: Build CDP from source (REQUIRED)
-      run: |
-        chmod +x scripts/build-cdp.sh
-        make build-cdp
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
@@ -164,11 +157,10 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Run oracle validation tests
+    - name: Run oracle tests using make
       run: |
-        chmod +x scripts/test-cdp-ci.sh
-        ./scripts/test-cdp-ci.sh
-        # Future: cargo test --package cdp-oracle --features integration-tests
+        make install-cdp
+        make oracle-local
 
   benchmark:
     name: Benchmark
@@ -181,7 +173,10 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake git
+        sudo apt-get install -y build-essential cmake git python3
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
     
     - name: Cache CDP build
       uses: actions/cache@v4
@@ -193,14 +188,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cdp-
     
-    - name: Build CDP from source (REQUIRED)
-      run: |
-        chmod +x scripts/build-cdp.sh
-        make build-cdp
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
@@ -211,7 +198,9 @@ jobs:
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
     - name: Run benchmarks
-      run: make bench
+      run: |
+        make install-cdp
+        make bench
     
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
@@ -230,7 +219,10 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake git
+        sudo apt-get install -y build-essential cmake git python3
+    
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
     
     - name: Cache CDP build
       uses: actions/cache@v4
@@ -242,19 +234,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cdp-
     
-    - name: Build CDP from source (REQUIRED)
-      run: |
-        chmod +x scripts/build-cdp.sh
-        make build-cdp
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
     - name: Install tarpaulin
       run: cargo install cargo-tarpaulin
     
     - name: Generate coverage
-      run: make coverage
+      run: |
+        make install-cdp
+        make coverage
     
     - name: Upload coverage
       uses: actions/upload-artifact@v4
