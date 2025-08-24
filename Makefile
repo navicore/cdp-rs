@@ -1,6 +1,37 @@
-.PHONY: all build test clean lint fmt fmt-check check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private build-cdp install-cdp test-cdp clean-cdp cdp-env install-deps profile coverage size audit
+.PHONY: all build test clean lint fmt fmt-check check-cdp check release bench doc install help ci-test ci-lint ci-check pre-commit validate todo watch check-frozen oracle demo test-verbose doc-private build-cdp install-cdp test-cdp clean-cdp cdp-env install-deps profile coverage size audit oracle-local
 
-# Check for CDP installation first
+# Default target - run all checks (MUST BE FIRST!)
+all:
+	@echo "Running format check..."
+	@cargo fmt --all -- --check
+	@echo "Running lint..."
+	@cargo clippy --workspace --all-targets --all-features -- \
+		-W clippy::all \
+		-W clippy::correctness \
+		-W clippy::suspicious \
+		-W clippy::complexity \
+		-W clippy::perf \
+		-W clippy::style \
+		-A clippy::missing_errors_doc \
+		-A clippy::missing_panics_doc \
+		-A clippy::must_use_candidate \
+		-A clippy::module_name_repetitions
+	@if [ ! -d "build/cdp-install/bin" ] || [ ! -f "build/cdp-install/bin/housekeep" ]; then \
+		echo "ERROR: CDP is not installed!"; \
+		echo "CDP is REQUIRED for tests."; \
+		echo "Run 'make install-cdp' to install CDP first."; \
+		exit 1; \
+	fi
+	@echo "✓ CDP is installed"
+	@echo "Building all packages..."
+	@cargo build --workspace
+	@echo "Running tests..."
+	@cargo test --workspace
+	@echo "Building release version..."
+	@cargo build --workspace --release
+	@$(MAKE) oracle-local
+
+# Check for CDP installation
 check-cdp:
 	@if [ ! -d "build/cdp-install/bin" ] || [ ! -f "build/cdp-install/bin/housekeep" ]; then \
 		echo "ERROR: CDP is not installed!"; \
@@ -9,9 +40,6 @@ check-cdp:
 		exit 1; \
 	fi
 	@echo "✓ CDP is installed"
-
-# Default target - ALWAYS check for CDP first
-all: check-cdp fmt-check lint build test release oracle-local
 
 # Help target
 help:
@@ -43,15 +71,15 @@ help:
 	@echo "make demo       - Run the oracle demo"
 
 # Build commands
-build: check-cdp
+build:
 	@echo "Building all packages..."
 	@cargo build --workspace
 
-release: check-cdp
+release:
 	@echo "Building release version..."
 	@cargo build --workspace --release
 
-# Testing commands
+# Testing commands  
 test: check-cdp
 	@echo "Running tests..."
 	@cargo test --workspace
@@ -142,6 +170,9 @@ clean:
 	@echo "Cleaning build artifacts..."
 	@cargo clean
 	@rm -rf target/
+	@echo "Removing CDP installation..."
+	@rm -rf build/cdp build/cdp-install
+	@echo "Clean complete - CDP and all build artifacts removed"
 
 # Install
 install:
