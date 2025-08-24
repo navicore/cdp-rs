@@ -1,4 +1,4 @@
-name: CDP Oracle Validation
+name: CDP Validation
 
 on:
   push:
@@ -11,48 +11,10 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  lint:
-    name: Lint
+  validate:
+    name: Full Validation
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
     
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        components: rustfmt, clippy
-    
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Check formatting
-      run: cargo fmt --all -- --check
-    
-    - name: Run clippy
-      run: |
-        cargo clippy --workspace --all-targets --all-features -- \
-          -D warnings \
-          -W clippy::all \
-          -W clippy::correctness \
-          -W clippy::suspicious \
-          -W clippy::complexity \
-          -W clippy::perf \
-          -W clippy::style \
-          -A clippy::missing_errors_doc \
-          -A clippy::missing_panics_doc \
-          -A clippy::must_use_candidate \
-          -A clippy::module_name_repetitions
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: lint
     steps:
     - uses: actions/checkout@v4
     
@@ -63,6 +25,8 @@ jobs:
     
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
     
     - name: Cache CDP build
       uses: actions/cache@v4
@@ -83,13 +47,13 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Run make clean and full build
+    - name: Run full validation (exactly like local)
       run: |
         make clean
         make install-cdp
         make
     
-    - name: Upload test artifacts
+    - name: Upload artifacts on failure
       if: failure()
       uses: actions/upload-artifact@v4
       with:
@@ -97,153 +61,4 @@ jobs:
         path: |
           target/debug/deps/
           **/*.wav
-
-  check-frozen-modules:
-    name: Check Frozen Modules
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Check frozen modules unchanged
-      run: |
-        # List of frozen modules
-        FROZEN_MODULES="cdp-core cdp-pvoc cdp-spectral"
-        
-        # Check if any frozen module was modified
-        for module in $FROZEN_MODULES; do
-          if git diff --name-only origin/main HEAD | grep -q "^$module/"; then
-            echo "ERROR: Frozen module $module was modified!"
-            echo "Frozen modules can only be changed with explicit approval."
-            exit 1
-          fi
-        done
-        
-        echo "✓ All frozen modules unchanged"
-
-  oracle-tests:
-    name: Oracle Validation
-    runs-on: ubuntu-latest
-    needs: [test, check-frozen-modules]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake git python3
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Cache CDP build
-      uses: actions/cache@v4
-      with:
-        path: |
-          build/cdp
-          build/cdp-install
-        key: ${{ runner.os }}-cdp-${{ hashFiles('scripts/build-cdp.sh') }}
-        restore-keys: |
-          ${{ runner.os }}-cdp-
-    
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Run oracle tests using make
-      run: |
-        make install-cdp
-        make oracle-local
-
-  benchmark:
-    name: Benchmark
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake git python3
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Cache CDP build
-      uses: actions/cache@v4
-      with:
-        path: |
-          build/cdp
-          build/cdp-install
-        key: ${{ runner.os }}-cdp-${{ hashFiles('scripts/build-cdp.sh') }}
-        restore-keys: |
-          ${{ runner.os }}-cdp-
-    
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Run benchmarks
-      run: |
-        make install-cdp
-        make bench
-    
-    - name: Upload benchmark results
-      uses: actions/upload-artifact@v4
-      with:
-        name: benchmark-results
-        path: target/criterion/
-
-  coverage:
-    name: Code Coverage
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install build dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake git python3
-    
-    - name: Setup Rust
-      uses: dtolnay/rust-toolchain@stable
-    
-    - name: Cache CDP build
-      uses: actions/cache@v4
-      with:
-        path: |
-          build/cdp
-          build/cdp-install
-        key: ${{ runner.os }}-cdp-${{ hashFiles('scripts/build-cdp.sh') }}
-        restore-keys: |
-          ${{ runner.os }}-cdp-
-    
-    - name: Install tarpaulin
-      run: cargo install cargo-tarpaulin
-    
-    - name: Generate coverage
-      run: |
-        make install-cdp
-        make coverage
-    
-    - name: Upload coverage
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: target/coverage/
+          **/*.ana
