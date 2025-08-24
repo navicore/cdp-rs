@@ -10,4 +10,6 @@ repository.workspace = true
 thiserror = { workspace = true }
 
 [dev-dependencies]
+cdp-oracle = { path = "../cdp-oracle" }
+hound = { workspace = true }
 tempfile = "3.20"

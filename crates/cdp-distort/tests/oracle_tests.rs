@@ -204,7 +204,10 @@ fn test_multiply_with_mix() {
         .output()
         .expect("Failed to run CDP distort multiply with prescale");
 
-    assert!(cdp_result.status.success(), "CDP distort multiply with prescale failed");
+    assert!(
+        cdp_result.status.success(),
+        "CDP distort multiply with prescale failed"
+    );
 
     // Run Rust implementation
     multiply(&input_path, &rust_output, 4.0, 0.5).unwrap();
@@ -239,7 +242,10 @@ fn test_distort_chain() {
         .output()
         .expect("Failed to run CDP distort multiply in chain");
 
-    assert!(cdp_result1.status.success(), "CDP distort multiply in chain failed");
+    assert!(
+        cdp_result1.status.success(),
+        "CDP distort multiply in chain failed"
+    );
 
     let cdp_result2 = cdp_command("distort")
         .args([
@@ -252,7 +258,10 @@ fn test_distort_chain() {
         .output()
         .expect("Failed to run CDP distort overload in chain");
 
-    assert!(cdp_result2.status.success(), "CDP distort overload in chain failed");
+    assert!(
+        cdp_result2.status.success(),
+        "CDP distort overload in chain failed"
+    );
 
     // Rust chain
     multiply(&input_path, &temp_path, 2.0, 1.0).unwrap();

@@ -1,8 +1,8 @@
 //! Oracle tests comparing our spectral implementations against CDP
 
+use cdp_oracle::test_utils::cdp_command;
 use std::fs;
 use std::path::Path;
-use cdp_oracle::test_utils::cdp_command;
 use std::process::Command;
 use tempfile::TempDir;
 
